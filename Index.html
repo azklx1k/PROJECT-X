@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>LensLearn — AI Study Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       LENSLEARN — DESIGN SYSTEM
+       Inspired by Apple Human Interface Guidelines
+    ═══════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #0A84FF;
+      --blue-lt:    #E8F3FF;
+      --blue-dk:    #0060CC;
+      --black:      #0A0A0A;
+      --g900:       #1C1C1E;
+      --g700:       #3A3A3C;
+      --g500:       #636366;
+      --g300:       #C7C7CC;
+      --g200:       #E5E5EA;
+      --g100:       #F2F2F7;
+      --white:      #FFFFFF;
+      --green:      #30D158;
+      --red:        #FF453A;
+      --yellow:     #FFD60A;
+      --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-xl: 32px;
+      --sh-sm: 0 1px 6px rgba(0,0,0,0.07);
+      --sh-md: 0 4px 24px rgba(0,0,0,0.10);
+      --sh-lg: 0 12px 48px rgba(0,0,0,0.15);
+      --ease: cubic-bezier(0.4,0,0.2,1);
+      --f: 'Inter', -apple-system, sans-serif;
+    }
+
+    html, body { height: 100%; background: #D1D1D6; font-family: var(--f); -webkit-font-smoothing: antialiased; }
+    #root { height: 100%; display: flex; align-items: center; justify-content: center; }
+
+    /* Phone shell */
+    .shell {
+      position: relative;
+      width: 100%; max-width: 393px;
+      height: 100dvh; max-height: 852px;
+      background: var(--g100);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+      border-radius: 0;
+    }
+
+    @media (min-width: 430px) {
+      .shell { border-radius: 54px; border: 10px solid #1a1a1a; height: 852px; }
+    }
+
+    /* Screen */
+    .screen {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding-bottom: 88px;
+      animation: fadeUp 0.32s var(--ease) both;
+      scrollbar-width: none;
+    }
+    .screen::-webkit-scrollbar { display: none; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px 8px;
+      background: transparent;
+      flex-shrink: 0;
+    }
+    .status-time { font-size: 15px; font-weight: 600; color: var(--black); }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+    .status-icons span { font-size: 13px; }
+
+    /* ── Bottom nav ─────────────────────────────────────────── */
+    .bottom-nav {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 80px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 0 4px 8px;
+      z-index: 90;
+    }
+    .nav-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 8px 14px; border: none; background: none; cursor: pointer;
+      border-radius: 14px; transition: all 0.2s var(--ease);
+      font-family: var(--f); position: relative; min-width: 68px;
+    }
+    .nav-btn:active { transform: scale(0.9); }
+    .nav-icon { font-size: 22px; transition: all 0.2s; color: var(--g500); line-height: 1; }
+    .nav-label { font-size: 10px; font-weight: 500; color: var(--g500); transition: color 0.2s; }
+    .nav-btn.active .nav-icon { color: var(--blue); transform: scale(1.1); }
+    .nav-btn.active .nav-label { color: var(--blue); font-weight: 700; }
+    .nav-dot { position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
+
+    /* ── Shared UI atoms ────────────────────────────────────── */
+    .card { background: var(--white); border-radius: var(--r-md); padding: 20px; box-shadow: var(--sh-sm); }
+    .card-dark { background: var(--g900); border-radius: var(--r-md); padding: 20px; }
+    .px { padding-left: 20px; padding-right: 20px; }
+    .py { padding-top: 16px; padding-bottom: 16px; }
+
+    .btn-primary {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 16px; background: var(--blue); color: var(--white);
+      font-size: 16px; font-weight: 600; border: none; border-radius: var(--r-md);
+      cursor: pointer; transition: all 0.2s var(--ease); font-family: var(--f);
+    }
+    .btn-primary:hover { background: var(--blue-dk); transform: translateY(-1px); box-shadow: var(--sh-md); }
+    .btn-primary:active { transform: translateY(0) scale(0.98); }
+
+    .btn-sec {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 14px; background: var(--g100); color: var(--black);
+      font-size: 15px; font-weight: 500; border: none; border-radius: var(--r-md);
+      cursor: pointer; transition: all 0.2s; font-family: var(--f);
+    }
+    .btn-sec:hover { background: var(--g200); }
+
+    .btn-outline {
+      padding: 11px 20px; border: 1.5px solid var(--g300); background: none;
+      color: var(--g700); font-size: 14px; font-weight: 500;
+      border-radius: var(--r-sm); cursor: pointer; transition: all 0.2s;
+      font-family: var(--f);
+    }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .b-blue   { background: var(--blue-lt); color: var(--blue); }
+    .b-green  { background: #D1F5DC; color: #1C7A36; }
+    .b-yellow { background: #FFF9CC; color: #8A6500; }
+    .b-red    { background: #FFE5E3; color: #C0392B; }
+    .b-dark   { background: var(--g700); color: var(--white); }
+
+    .section-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-hd h3 { font-size: 18px; font-weight: 700; }
+    .section-hd .see-all { font-size: 14px; color: var(--blue); font-weight: 500; cursor: pointer; }
+
+    .progress-wrap { height: 6px; background: var(--g200); border-radius: 6px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--blue); border-radius: 6px; transition: width 0.6s ease; }
+
+    .live-dot {
+      width: 8px; height: 8px; background: var(--red);
+      border-radius: 50%; animation: livepulse 1.4s ease-in-out infinite;
+    }
+    @keyframes livepulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.35; transform:scale(0.65); }
+    }
+
+    .pill-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .pill-row::-webkit-scrollbar { display: none; }
+    .pill {
+      flex-shrink: 0; padding: 8px 18px; border-radius: 20px;
+      font-size: 14px; font-weight: 500; border: none; cursor: pointer;
+      transition: all 0.2s; font-family: var(--f);
+      background: var(--white); color: var(--g500);
+    }
+    .pill.on { background: var(--blue); color: var(--white); }
+    .pill:hover:not(.on) { background: var(--g200); }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;
+    }
+
+    .divider { height: 1px; background: var(--g200); margin: 4px 0; }
+
+    /* ═══════════════════════════════════════════════════════════
+       ONBOARDING SCREEN
+    ═══════════════════════════════════════════════════════════ */
+    #s-onboarding {
+      background: linear-gradient(160deg, #0A0A0A 0%, #1a1a2e 50%, #0A0A0A 100%);
+      min-height: 100%; padding: 0; display: flex; flex-direction: column;
+    }
+    .ob-hero {
+      padding: 48px 28px 32px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .ob-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+    }
+    .ob-logo-icon {
+      width: 44px; height: 44px; background: var(--blue);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .ob-logo-text { font-size: 22px; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+    .ob-logo-text span { color: var(--blue); }
+    .ob-tag { font-size: 12px; font-weight: 600; color: var(--blue); letter-spacing: 1.5px; text-transform: uppercase; }
+    .ob-title { font-size: 32px; font-weight: 900; color: var(--white); line-height: 1.15; letter-spacing: -0.5px; }
+    .ob-title span { color: var(--blue); }
+    .ob-sub { font-size: 15px; color: #8E8E93; line-height: 1.6; margin-top: 4px; }
+
+    .ob-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--r-lg); margin: 0 20px; padding: 24px;
+      backdrop-filter: blur(10px);
+    }
+    .ob-section-label {
+      font-size: 11px; font-weight: 700; color: #636366;
+      text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 14px;
+    }
+
+    .style-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .style-opt {
+      padding: 16px 14px; border-radius: var(--r-sm);
+      background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08);
+      cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .style-opt.on {
+      background: rgba(10,132,255,0.15); border-color: var(--blue);
+    }
+    .style-opt:hover:not(.on) { border-color: rgba(255,255,255,0.2); }
+    .style-opt-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+    .style-opt-label { font-size: 13px; font-weight: 600; color: var(--white); }
+    .style-opt-sub { font-size: 11px; color: #636366; margin-top: 2px; }
+
+    .level-slider {
+      width: 100%; accent-color: var(--blue);
+      height: 4px; appearance: none; -webkit-appearance: none;
+      background: linear-gradient(to right, var(--blue) 50%, rgba(255,255,255,0.1) 50%);
+      border-radius: 4px; outline: none; cursor: pointer;
+    }
+    .level-labels { display: flex; justify-content: space-between; margin-top: 8px; }
+    .level-label-text { font-size: 12px; color: #636366; font-weight: 500; }
+
+    .ob-bottom { padding: 20px; margin-top: auto; }
+    .ob-bottom .btn-primary { border-radius: var(--r-lg); padding: 18px; font-size: 17px; }
+    .ob-terms { font-size: 11px; color: #48484A; text-align: center; margin-top: 10px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       DASHBOARD SCREEN
+    ═══════════════════════════════════════════════════════════ */
+    #s-dashboard { padding-bottom: 100px; }
+
+    .dash-header {
+      padding: 8px 20px 20px;
+      background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0) 100%);
+    }
+    .dash-greeting { font-size: 14px; color: var(--g500); font-weight: 500; }
+    .dash-name { font-size: 26px; font-weight: 800; color: var(--black); margin-top: 2px; }
+
+    .class-card {
+      margin: 0 20px 20px;
+      background: linear-gradient(135deg, #0A84FF 0%, #0040AA 100%);
+      border-radius: var(--r-lg); padding: 24px; position: relative; overflow: hidden;
+    }
+    .class-card::after {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 140px; height: 140px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+    .class-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
+    .class-name { font-size: 22px; font-weight: 800; color: var(--white); margin: 6px 0 4px; }
+    .class-meta { font-size: 13px; color: rgba(255,255,255,0.7); }
+    .class-progress { margin-top: 16px; }
+    .class-progress-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .class-progress-label span { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500; }
+    .class-progress-bar { height: 5px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; }
+    .class-progress-fill { height: 100%; background: var(--white); border-radius: 5px; width: 68%; }
+    .class-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .class-btn {
+      flex: 1; padding: 10px; background: rgba(255,255,255,0.15);
+      border: none; border-radius: var(--r-sm); color: var(--white);
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      font-family: var(--f);
+    }
+    .class-btn:hover { background: rgba(255,255,255,0.25); }
+    .class-btn.main-btn { background: var(--white); color: var(--blue); }
+
+    .kw-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .kw-chip {
+      padding: 6px 12px; background: var(--blue-lt); color: var(--blue);
+      border-radius: 20px; font-size: 12px; font-weight: 600;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .kw-exam { background: #FFF3CC; color: #7A5800; }
+
+    .study-list { display: flex; flex-direction: column; gap: 10px; }
+    .study-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; background: var(--white);
+      border-radius: var(--r-md); box-shadow: var(--sh-sm);
+    }
+    .study-rank {
+      width: 32px; height: 32px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 800; flex-shrink: 0;
+    }
+    .rank-1 { background: #FFF3CC; color: #7A5800; }
+    .rank-2 { background: var(--blue-lt); color: var(--blue); }
+    .rank-3 { background: #F0E8FF; color: #6B3FA0; }
+    .study-info { flex: 1; }
+    .study-name { font-size: 14px; font-weight: 600; color: var(--black); }
+    .study-sub  { font-size: 12px; color: var(--g500); margin-top: 2px; }
+
+    .summary-row { display: flex; gap: 10px; margin: 0 20px 20px; }
+    .summary-box {
+      flex: 1; background: var(--white); border-radius: var(--r-md);
+      padding: 16px; box-shadow: var(--sh-sm); text-align: center;
+    }
+    .summary-val { font-size: 26px; font-weight: 800; color: var(--black); }
+    .summary-unit { font-size: 11px; color: var(--g500); font-weight: 500; margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       LIVE CLASS SCREEN
+    ═══════════════════════════════════════════════════════════ */
+    #s-live { padding-bottom: 100px; }
+
+    .live-header {
+      padding: 8px 20px 16px;
+      background: var(--white);
+      border-bottom: 1px solid var(--g200);
+    }
+    .live-top { display: flex; align-items: center; justify-content: space-between; }
+    .live-indicator {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 12px; background: #FFE5E3; border-radius: 20px;
+    }
+    .live-indicator span { font-size: 12px; font-weight: 700; color: var(--red); }
+    .live-timer { font-size: 13px; font-weight: 600; color: var(--g500); }
+
+    .live-board {
+      margin: 16px 20px;
+      background: var(--g900); border-radius: var(--r-md);
+      min-height: 160px; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .live-board-content {
+      padding: 20px; font-size: 13px; color: rgba(255,255,255,0.85);
+      font-family: 'Courier New', monospace; line-height: 1.7; text-align: left; width: 100%;
+    }
+    .board-eq { color: #7EB8FF; font-weight: 700; font-size: 16px; }
+    .board-highlight { color: var(--yellow); }
+    .board-label {
+      position: absolute; top: 10px; left: 12px;
+      font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3);
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    .transcript-box {
+      margin: 0 20px 16px;
+      background: var(--white); border-radius: var(--r-md);
+      padding: 16px; box-shadow: var(--sh-sm); min-height: 140px;
+    }
+    .transcript-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; color: var(--g500);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .transcript-text { font-size: 14px; color: var(--black); line-height: 1.7; }
+    .transcript-cursor {
+      display: inline-block; width: 2px; height: 14px;
+      background: var(--blue); border-radius: 1px; margin-left: 2px;
+      animation: blink 1s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .transcript-new { color: var(--blue); }
+
+    .important-highlight {
+      margin: 0 20px 16px; padding: 12px 16px;
+      background: linear-gradient(135deg, #FFF8CC, #FFF3AA);
+      border-radius: var(--r-sm); border-left: 3px solid var(--yellow);
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .imp-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .imp-label { font-size: 10px; font-weight: 700; color: #7A5800; text-transform: uppercase; letter-spacing: 1px; }
+    .imp-text { font-size: 13px; color: var(--black); line-height: 1.5; margin-top: 2px; }
+
+    .live-actions { padding: 0 20px; display: flex; gap: 10px; }
+    .mark-btn {
+      flex: 1; padding: 14px; border: none; border-radius: var(--r-md);
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      font-family: var(--f); display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .mark-btn.primary { background: var(--blue); color: var(--white); flex: 2; }
+    .mark-btn.primary:hover { background: var(--blue-dk); }
+    .mark-btn.secondary { background: var(--white); color: var(--black); border: 1.5px solid var(--g200); }
+
+    /* ═══════════════════════════════════════════════════════════
+       SMART NOTES SCREEN
+    ═══════════════════════════════════════════════════════════ */
+    #s-notes { padding-bottom: 100px; }
+
+    .notes-header { padding: 8px 20px 16px; }
+    .notes-title { font-size: 26px; font-weight: 800; color: var(--black); margin-bottom: 4px; }
+    .notes-sub { font-size: 14px; color: var(--g500); }
+
+    .note-block {
+      margin: 0 20px 16px;
+      background: var(--white); border-radius: var(--r-md);
+      padding: 20px; box-shadow: var(--sh-sm);
+      animation: fadeUp 0.3s var(--ease) both;
+    }
+    .note-block-title {
+      font-size: 16px; font-weight: 700; color: var(--black);
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    }
+    .note-block-title .icon { font-size: 20px; }
+
+    /* Simple style */
+    .note-simple p { font-size: 14px; color: var(--g700); line-height: 1.7; }
+    .note-simple p + p { margin-top: 8px; }
+    .note-simple strong { color: var(--black); }
+
+    /* Visual style */
+    .note-visual .concept-map {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .concept-node {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: var(--r-sm);
+    }
+    .cn-main { background: var(--blue); }
+    .cn-sub  { background: var(--blue-lt); margin-left: 20px; }
+    .cn-leaf { background: var(--g100); margin-left: 40px; }
+    .cn-arrow { color: rgba(255,255,255,0.5); font-size: 12px; }
+    .cn-main .cn-text { font-size: 14px; font-weight: 700; color: var(--white); }
+    .cn-sub  .cn-text { font-size: 13px; font-weight: 600; color: var(--blue); }
+    .cn-leaf .cn-text { font-size: 13px; color: var(--g700); }
+
+    /* Step-by-step style */
+    .note-steps .step {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 10px 0;
+    }
+    .note-steps .step + .step { border-top: 1px solid var(--g100); }
+    .step-num {
+      width: 26px; height: 26px; border-radius: 8px;
+      background: var(--blue); color: var(--white);
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-content { flex: 1; }
+    .step-title { font-size: 14px; font-weight: 600; color: var(--black); }
+    .step-desc { font-size: 13px; color: var(--g500); margin-top: 3px; line-height: 1.5; }
+
+    /* Example */
+    .example-box {
+      background: linear-gradient(135deg, #F0F8FF, #E8F3FF);
+      border-radius: var(--r-sm); padding: 16px;
+      border: 1.5px solid var(--blue-lt);
+    }
+    .example-label { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .example-eq { font-size: 18px; font-weight: 700; color: var(--black); margin: 8px 0; font-family: 'Courier New', monospace; }
+    .example-step { font-size: 13px; color: var(--g700); line-height: 1.6; }
+    .example-result { font-size: 15px; font-weight: 700; color: var(--green); margin-top: 8px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       TASK MODE SCREEN
+    ═══════════════════════════════════════════════════════════ */
+    #s-tasks { padding-bottom: 100px; }
+
+    .task-header { padding: 8px 20px 20px; }
+    .task-title-row { display: flex; align-items: center; justify-content: space-between; }
+
+    .problem-card {
+      margin: 0 20px 16px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0A0A0A 100%);
+      border-radius: var(--r-lg); padding: 24px;
+    }
+    .problem-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.2px; }
+    .problem-text { font-size: 17px; color: var(--white); font-weight: 600; line-height: 1.5; margin: 10px 0; }
+    .problem-eq { font-size: 22px; font-weight: 800; color: var(--blue); font-family: 'Courier New', monospace; margin: 12px 0; }
+    .problem-difficulty { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+    .diff-star { color: var(--yellow); font-size: 16px; }
+
+    .task-btns { display: flex; gap: 10px; padding: 0 20px; margin-bottom: 16px; }
+
+    .hint-box, .solution-box {
+      margin: 0 20px 16px; padding: 18px;
+      border-radius: var(--r-md); animation: fadeUp 0.3s var(--ease);
+    }
+    .hint-box { background: #FFF8E0; border: 1.5px solid #FFD60A; }
+    .solution-box { background: #E8F8EE; border: 1.5px solid var(--green); }
+    .hint-label { font-size: 11px; font-weight: 700; color: #8A6500; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .solution-label { font-size: 11px; font-weight: 700; color: #1C7A36; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+
+    .solution-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .sol-step { display: flex; gap: 10px; align-items: flex-start; }
+    .sol-num {
+      width: 22px; height: 22px; border-radius: 6px; background: var(--green);
+      color: var(--white); font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .sol-text { font-size: 14px; color: var(--g700); line-height: 1.5; }
+    .sol-eq { color: var(--black); font-weight: 700; font-family: 'Courier New', monospace; }
+
+    .input-answer {
+      margin: 0 20px; display: flex; gap: 10px;
+    }
+    .answer-input {
+      flex: 1; padding: 14px 16px; font-size: 16px; font-family: 'Courier New', monospace;
+      border: 1.5px solid var(--g300); border-radius: var(--r-md);
+      outline: none; transition: border 0.2s;
+      background: var(--white);
+    }
+    .answer-input:focus { border-color: var(--blue); }
+    .check-btn {
+      padding: 14px 20px; background: var(--blue); color: var(--white);
+      border: none; border-radius: var(--r-md); font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: var(--f); transition: all 0.2s;
+    }
+    .check-btn:hover { background: var(--blue-dk); }
+
+    .answer-result {
+      margin: 12px 20px 0; padding: 14px 16px;
+      border-radius: var(--r-md); font-size: 15px; font-weight: 600;
+      animation: fadeUp 0.25s ease;
+    }
+    .answer-correct { background: #E8F8EE; color: #1C7A36; border: 1.5px solid var(--green); }
+    .answer-wrong   { background: #FFE5E3; color: #C0392B; border: 1.5px solid var(--red); }
+
+    /* ═══════════════════════════════════════════════════════════
+       EXAM MODE SCREEN
+    ═══════════════════════════════════════════════════════════ */
+    #s-exam {
+      background: #000; min-height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px 28px; position: relative;
+    }
+    .exam-glow {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(10,132,255,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .exam-icon { font-size: 56px; margin-bottom: 24px; }
+    .exam-title { font-size: 28px; font-weight: 900; color: var(--white); text-align: center; letter-spacing: -0.5px; }
+    .exam-subtitle { font-size: 15px; color: #48484A; text-align: center; margin-top: 8px; font-style: italic; }
+    .exam-divider { width: 40px; height: 2px; background: var(--blue); border-radius: 2px; margin: 24px auto; }
+    .exam-rules { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 280px; }
+    .exam-rule {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; background: rgba(255,255,255,0.04);
+      border-radius: var(--r-sm); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .exam-rule-icon { font-size: 18px; }
+    .exam-rule-text { font-size: 13px; color: #8E8E93; font-weight: 500; }
+    .exam-timer {
+      font-size: 48px; font-weight: 900; color: var(--white);
+      letter-spacing: -1px; font-family: 'Courier New', monospace;
+      margin: 28px 0 8px;
+    }
+    .exam-timer-label { font-size: 11px; color: #48484A; text-transform: uppercase; letter-spacing: 1.5px; }
+    .exam-exit {
+      margin-top: 36px; padding: 14px 40px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--r-md); color: #636366; font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: var(--f); transition: all 0.2s;
+    }
+    .exam-exit:hover { background: rgba(255,255,255,0.10); color: var(--white); }
+
+    /* ── Misc ─────────────────────────────────────────────── */
+    .spacer { height: 16px; }
+    .spacer-sm { height: 8px; }
+  </style>
+</head>
+<body>
+<div id="root">
+  <div class="shell" id="app">
+    <!-- Status bar -->
+    <div class="status-bar" id="statusBar">
+      <span class="status-time" id="clockDisplay">9:41</span>
+      <div class="status-icons">
+        <span>●●●</span>
+        <span>WiFi</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <!-- Screens container -->
+    <div class="screen" id="screenContainer"></div>
+
+    <!-- Bottom nav (hidden on onboarding & exam) -->
+    <nav class="bottom-nav" id="bottomNav" style="display:none">
+      <button class="nav-btn" data-screen="dashboard" onclick="navigate('dashboard')">
+        <span class="nav-icon">⊞</span>
+        <span class="nav-label">Inicio</span>
+      </button>
+      <button class="nav-btn" data-screen="live" onclick="navigate('live')">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">En Vivo</span>
+      </button>
+      <button class="nav-btn" data-screen="notes" onclick="navigate('notes')">
+        <span class="nav-icon">✦</span>
+        <span class="nav-label">Apuntes</span>
+      </button>
+      <button class="nav-btn" data-screen="tasks" onclick="navigate('tasks')">
+        <span class="nav-icon">◈</span>
+        <span class="nav-label">Tareas</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   LENSLEARN — App State & Navigation
+═══════════════════════════════════════════════════════════════ */
+const state = {
+  screen: 'onboarding',
+  userProfile: { name: 'Alejandro', style: 'visual', level: 3 },
+  noteStyle: 'simple',
+  showHint: false,
+  showSolution: false,
+  answerResult: null,
+  examSeconds: 3600,
+  examInterval: null,
+  liveInterval: null,
+  transcriptIndex: 0,
+  styleChoice: 'visual',
+  level: 3,
+};
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clockDisplay').textContent = `${h}:${m}`;
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+/* ── Navigate ───────────────────────────────────────────── */
+function navigate(screen) {
+  if (state.liveInterval && screen !== 'live') {
+    clearInterval(state.liveInterval);
+    state.liveInterval = null;
+  }
+  if (state.examInterval && screen !== 'exam') {
+    clearInterval(state.examInterval);
+    state.examInterval = null;
+  }
+
+  state.screen = screen;
+  renderScreen();
+  updateNav();
+}
+
+function updateNav() {
+  const nav = document.getElementById('bottomNav');
+  const hide = ['onboarding','exam'].includes(state.screen);
+  nav.style.display = hide ? 'none' : 'flex';
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    const active = btn.dataset.screen === state.screen;
+    btn.classList.toggle('active', active);
+    // remove old dot
+    btn.querySelectorAll('.nav-dot').forEach(d => d.remove());
+    if (active) {
+      const dot = document.createElement('span');
+      dot.className = 'nav-dot';
+      btn.appendChild(dot);
+    }
+  });
+}
+
+/* ── Render dispatcher ──────────────────────────────────── */
+function renderScreen() {
+  const container = document.getElementById('screenContainer');
+  const renders = {
+    onboarding: renderOnboarding,
+    dashboard:  renderDashboard,
+    live:       renderLive,
+    notes:      renderNotes,
+    tasks:      renderTasks,
+    exam:       renderExam,
+  };
+  container.innerHTML = '';
+  const el = document.createElement('div');
+  el.className = 'screen';
+  el.id = `s-${state.screen}`;
+  el.innerHTML = (renders[state.screen] || renderDashboard)();
+  container.appendChild(el);
+  if (state.screen === 'live')  startLiveTranscript();
+  if (state.screen === 'exam')  startExamTimer();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ONBOARDING
+═══════════════════════════════════════════════════════════════ */
+const styleOptions = [
+  { id:'visual',    icon:'🎨', label:'Visual',     sub:'Mapas y diagramas' },
+  { id:'steps',     icon:'🪜', label:'Paso a paso', sub:'Secuencial y claro' },
+  { id:'summary',   icon:'⚡', label:'Resumen',     sub:'Solo lo esencial' },
+  { id:'examples',  icon:'💡', label:'Ejemplos',    sub:'Aprendo haciendo' },
+];
+
+function renderOnboarding() {
+  return `
+  <div id="s-onboarding">
+    <div class="ob-hero">
+      <div class="ob-logo">
+        <div class="ob-logo-icon">👓</div>
+        <span class="ob-logo-text">Lens<span>Learn</span></span>
+      </div>
+      <div class="ob-tag">AI Study Companion</div>
+      <h1 class="ob-title">Tu clase,<br><span>inteligente</span>.</h1>
+      <p class="ob-sub">Tus gafas capturan la clase. Nuestra IA convierte cada lección en contenido perfecto para <em>ti</em>.</p>
+    </div>
+
+    <div class="ob-card">
+      <div class="ob-section-label">¿Cómo aprendes mejor?</div>
+      <div class="style-grid" id="styleGrid">
+        ${styleOptions.map(s => `
+          <div class="style-opt ${state.styleChoice===s.id?'on':''}"
+               onclick="selectStyle('${s.id}')" id="style-${s.id}">
+            <span class="style-opt-icon">${s.icon}</span>
+            <div class="style-opt-label">${s.label}</div>
+            <div class="style-opt-sub">${s.sub}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="margin-top:24px">
+        <div class="ob-section-label">Nivel de detalle</div>
+        <input type="range" class="level-slider" min="1" max="5" value="${state.level}"
+               id="levelSlider" oninput="updateLevel(this.value)" />
+        <div class="level-labels">
+          <span class="level-label-text">Básico</span>
+          <span class="level-label-text" id="levelVal" style="color:var(--blue);font-weight:700">Intermedio</span>
+          <span class="level-label-text">Avanzado</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ob-bottom">
+      <button class="btn-primary" onclick="completeOnboarding()">
+        Comenzar experiencia →
+      </button>
+      <div class="ob-terms">Sin guardar audios. Solo texto procesado. Tu privacidad, protegida.</div>
+    </div>
+  </div>`;
+}
+
+function selectStyle(id) {
+  state.styleChoice = id;
+  document.querySelectorAll('.style-opt').forEach(el => el.classList.remove('on'));
+  document.getElementById(`style-${id}`)?.classList.add('on');
+}
+
+function updateLevel(v) {
+  state.level = parseInt(v);
+  const labels = ['','Básico','Elemental','Intermedio','Avanzado','Experto'];
+  const el = document.getElementById('levelVal');
+  if (el) el.textContent = labels[v];
+  // update slider fill
+  const pct = ((v-1)/4)*100;
+  document.getElementById('levelSlider').style.background =
+    `linear-gradient(to right, var(--blue) ${pct}%, rgba(255,255,255,0.1) ${pct}%)`;
+}
+
+function completeOnboarding() {
+  state.userProfile = { name: 'Alejandro', style: state.styleChoice, level: state.level };
+  navigate('dashboard');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════════════════ */
+function renderDashboard() {
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+
+  return `
+  <div style="padding-bottom:4px">
+    <div class="dash-header">
+      <div class="dash-greeting">${greeting} 👋</div>
+      <div class="dash-name">${state.userProfile?.name || 'Estudiante'}</div>
+    </div>
+
+    <!-- Current class card -->
+    <div class="class-card" id="classCard">
+      <div class="class-label">Clase en curso · Lunes 9:00 AM</div>
+      <div class="class-name">Cálculo Diferencial</div>
+      <div class="class-meta">Prof. Dr. Ramírez · Aula 204 · 48 min restantes</div>
+      <div class="class-progress">
+        <div class="class-progress-label">
+          <span>Progreso de clase</span>
+          <span>68%</span>
+        </div>
+        <div class="class-progress-bar"><div class="class-progress-fill"></div></div>
+      </div>
+      <div class="class-actions">
+        <button class="class-btn main-btn" onclick="navigate('live')">▶ Ver en vivo</button>
+        <button class="class-btn" onclick="navigate('notes')">Apuntes</button>
+        <button class="class-btn" onclick="navigate('exam')">Examen</button>
+      </div>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="summary-row">
+      <div class="summary-box">
+        <div class="summary-val" style="color:var(--blue)">4</div>
+        <div class="summary-unit">Clases hoy</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-val" style="color:var(--green)">87%</div>
+        <div class="summary-unit">Comprensión</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-val" style="color:var(--yellow)">12</div>
+        <div class="summary-unit">Palabras clave</div>
+      </div>
+    </div>
+
+    <!-- Keywords -->
+    <div style="padding:0 20px;margin-bottom:20px">
+      <div class="section-hd">
+        <h3>🔑 Palabras Clave</h3>
+        <span class="see-all" onclick="navigate('notes')">Ver apuntes</span>
+      </div>
+      <div class="kw-row">
+        <div class="kw-chip kw-exam">⚠️ Examen: Límites</div>
+        <div class="kw-chip kw-exam">⚠️ Regla de la cadena</div>
+        <div class="kw-chip">Derivada implícita</div>
+        <div class="kw-chip">L'Hôpital</div>
+        <div class="kw-chip">Infinitesimal</div>
+        <div class="kw-chip">Continuidad</div>
+      </div>
+    </div>
+
+    <!-- Priority study -->
+    <div style="padding:0 20px;margin-bottom:20px">
+      <div class="section-hd">
+        <h3>📊 Prioridad de Estudio</h3>
+      </div>
+      <div class="study-list">
+        <div class="study-item">
+          <div class="study-rank rank-1">1</div>
+          <div class="study-info">
+            <div class="study-name">Regla de la cadena</div>
+            <div class="study-sub">Alta probabilidad en examen · Repasado hace 5 días</div>
+          </div>
+          <span class="badge b-yellow">Urgente</span>
+        </div>
+        <div class="study-item">
+          <div class="study-rank rank-2">2</div>
+          <div class="study-info">
+            <div class="study-name">Límites al infinito</div>
+            <div class="study-sub">Mencionado 3 veces hoy · Tema central</div>
+          </div>
+          <span class="badge b-blue">Hoy</span>
+        </div>
+        <div class="study-item">
+          <div class="study-rank rank-3">3</div>
+          <div class="study-info">
+            <div class="study-name">Derivadas implícitas</div>
+            <div class="study-sub">Tema nuevo · Sin repasar aún</div>
+          </div>
+          <span class="badge b-green">Nuevo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's summary -->
+    <div style="padding:0 20px;margin-bottom:20px">
+      <div class="section-hd"><h3>📝 Resumen del Día</h3></div>
+      <div class="card">
+        <div style="font-size:14px;color:var(--g700);line-height:1.7">
+          Hoy el Prof. Ramírez introdujo <strong>derivadas de funciones compuestas</strong> usando la regla de la cadena. 
+          Se enfatizó la importancia de los <strong>límites laterales</strong> para el próximo examen parcial. 
+          Se resolvieron 3 ejercicios en clase con dificultad creciente.
+        </div>
+        <button class="btn-sec" style="margin-top:14px" onclick="navigate('notes')">
+          Ver apuntes completos →
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LIVE CLASS
+═══════════════════════════════════════════════════════════════ */
+const transcriptLines = [
+  "...entonces, si tenemos f(x) = sin(x²), para derivar necesitamos aplicar la ",
+  "<span class='transcript-new'>regla de la cadena. Recuerden: la derivada exterior por la derivada interior.</span>",
+  "<span class='transcript-new'> f'(x) = cos(x²) · 2x. ¿Ven cómo funciona?</span>",
+  "<span class='transcript-new'> Este tipo de problema <em>viene en el examen</em>, así que presten atención.</span>",
+  "<span class='transcript-new'> Ahora veamos un caso más complejo con funciones trigonométricas anidadas...</span>",
+];
+
+let transcriptBuilt = "";
+let transcriptIdx = 0;
+
+function startLiveTranscript() {
+  transcriptBuilt = transcriptLines[0];
+  transcriptIdx = 1;
+  const el = document.getElementById('transcriptText');
+  if (!el) return;
+  el.innerHTML = transcriptBuilt + '<span class="transcript-cursor"></span>';
+  state.liveInterval = setInterval(() => {
+    if (transcriptIdx < transcriptLines.length) {
+      transcriptBuilt += transcriptLines[transcriptIdx];
+      transcriptIdx++;
+      const te = document.getElementById('transcriptText');
+      if (te) te.innerHTML = transcriptBuilt + '<span class="transcript-cursor"></span>';
+    }
+  }, 2200);
+}
+
+let liveTimer = 0;
+function renderLive() {
+  return `
+  <div>
+    <div class="live-header">
+      <div class="live-top">
+        <div class="ob-logo" style="gap:8px;margin-bottom:0">
+          <div style="font-size:18px">👓</div>
+          <span style="font-size:16px;font-weight:700;color:var(--black)">Cálculo Diferencial</span>
+        </div>
+        <div class="live-indicator">
+          <div class="live-dot"></div>
+          <span>EN VIVO</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+        <span style="font-size:13px;color:var(--g500)">Prof. Dr. Ramírez · Aula 204</span>
+        <span class="badge b-blue" id="liveTimerBadge">⏱ 48:12</span>
+      </div>
+    </div>
+
+    <!-- Board simulation -->
+    <div class="live-board">
+      <span class="board-label">Pizarra capturada por LensLearn</span>
+      <div class="live-board-content">
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;margin-bottom:8px">REGLA DE LA CADENA</div>
+        <div class="board-eq">d/dx[f(g(x))] = f'(g(x)) · g'(x)</div>
+        <div style="margin-top:12px;color:rgba(255,255,255,0.5)">Ejemplo:</div>
+        <div class="board-eq" style="font-size:14px">f(x) = sin(x²)</div>
+        <div style="margin-top:4px">
+          f'(x) = <span class="board-highlight">cos(x²)</span> · <span style="color:var(--green)">2x</span>
+        </div>
+        <div style="margin-top:12px;color:rgba(255,255,255,0.35);font-size:12px">
+          ↑ IA procesó imagen de pizarra hace 8 seg
+        </div>
+      </div>
+    </div>
+
+    <!-- Transcript -->
+    <div class="transcript-box">
+      <div class="transcript-label">
+        <div class="live-dot"></div>
+        Transcripción en tiempo real
+      </div>
+      <div class="transcript-text" id="transcriptText">
+        Cargando transcripción...<span class="transcript-cursor"></span>
+      </div>
+    </div>
+
+    <!-- Important highlight -->
+    <div class="important-highlight">
+      <span class="imp-icon">⚠️</span>
+      <div>
+        <div class="imp-label">IA detectó: viene en el examen</div>
+        <div class="imp-text">"Este tipo de problema <strong>viene en el examen</strong>"
+        — Prof. Ramírez, 09:47 AM</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="live-actions">
+      <button class="mark-btn primary" onclick="markImportant()">
+        ⭐ Marcar importante
+      </button>
+      <button class="mark-btn secondary" onclick="navigate('notes')">
+        📝 Apuntes
+      </button>
+    </div>
+    <div style="height:16px"></div>
+    <div style="padding:0 20px">
+      <div class="card" style="padding:14px 16px">
+        <div style="font-size:12px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">
+          Estadísticas de clase
+        </div>
+        <div style="display:flex;gap:16px;justify-content:space-between">
+          <div style="text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--blue)">847</div>
+            <div style="font-size:11px;color:var(--g500)">palabras cap.</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--green)">4</div>
+            <div style="font-size:11px;color:var(--g500)">conceptos clave</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--yellow)">3</div>
+            <div style="font-size:11px;color:var(--g500)">alertas IA</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--black)">2</div>
+            <div style="font-size:11px;color:var(--g500)">capturas piz.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="height:16px"></div>
+  </div>`;
+}
+
+function markImportant() {
+  const btn = document.querySelector('.mark-btn.primary');
+  if (!btn) return;
+  btn.textContent = '✅ ¡Marcado!';
+  btn.style.background = 'var(--green)';
+  setTimeout(() => {
+    if (btn) { btn.textContent = '⭐ Marcar importante'; btn.style.background = ''; }
+  }, 2000);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SMART NOTES
+═══════════════════════════════════════════════════════════════ */
+function renderNotes() {
+  const noteStyleRender = {
+    simple:   renderNoteSimple,
+    visual:   renderNoteVisual,
+    steps:    renderNoteSteps,
+  };
+
+  return `
+  <div>
+    <div class="notes-header">
+      <div class="notes-title">Apuntes IA</div>
+      <div class="notes-sub">Cálculo Diferencial · 28 mayo 2025</div>
+    </div>
+
+    <!-- Style pills -->
+    <div style="padding:0 20px;margin-bottom:20px">
+      <div class="pill-row">
+        <button class="pill ${state.noteStyle==='simple'?'on':''}" onclick="setNoteStyle('simple')">📄 Simple</button>
+        <button class="pill ${state.noteStyle==='visual'?'on':''}" onclick="setNoteStyle('visual')">🎨 Visual</button>
+        <button class="pill ${state.noteStyle==='steps'?'on':''}" onclick="setNoteStyle('steps')">🪜 Paso a paso</button>
+      </div>
+    </div>
+
+    <!-- Note content -->
+    <div id="noteContent">
+      ${(noteStyleRender[state.noteStyle] || renderNoteSimple)()}
+    </div>
+
+    <!-- Example guided -->
+    <div style="padding:0 20px;margin-bottom:20px">
+      <div class="section-hd"><h3>💡 Ejemplo Guiado</h3></div>
+      <div class="example-box">
+        <div class="example-label">Ejercicio resuelto</div>
+        <div class="example-eq">f(x) = (3x² + 1)⁵</div>
+        <div class="example-step">
+          Identificamos: función exterior = u⁵, función interior = 3x² + 1<br>
+          Aplicamos regla de la cadena:
+        </div>
+        <div class="example-eq" style="font-size:15px;margin:6px 0">
+          f'(x) = 5(3x² + 1)⁴ · 6x
+        </div>
+        <div class="example-result">= 30x(3x² + 1)⁴ ✓</div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="padding:0 20px;margin-bottom:20px;display:flex;gap:10px">
+      <button class="btn-primary" style="flex:2" onclick="navigate('tasks')">
+        Practicar ejercicios →
+      </button>
+      <button class="btn-sec" style="flex:1" onclick="navigate('exam')">🎓 Examen</button>
+    </div>
+  </div>`;
+}
+
+function setNoteStyle(style) {
+  state.noteStyle = style;
+  const noteStyleRender = {
+    simple:   renderNoteSimple,
+    visual:   renderNoteVisual,
+    steps:    renderNoteSteps,
+  };
+  document.querySelectorAll('.pill').forEach(p => {
+    p.classList.toggle('on', p.textContent.toLowerCase().includes(style) ||
+      (style==='simple'&&p.textContent.includes('Simple')) ||
+      (style==='visual'&&p.textContent.includes('Visual')) ||
+      (style==='steps'&&p.textContent.includes('Paso')));
+  });
+  const content = document.getElementById('noteContent');
+  if (content) {
+    content.style.opacity = '0';
+    content.style.transform = 'translateY(8px)';
+    content.style.transition = 'all 0.2s ease';
+    setTimeout(() => {
+      content.innerHTML = (noteStyleRender[style] || renderNoteSimple)();
+      content.style.opacity = '1';
+      content.style.transform = 'translateY(0)';
+    }, 180);
+  }
+}
+
+function renderNoteSimple() {
+  return `
+  <div class="note-block note-simple">
+    <div class="note-block-title"><span class="icon">📄</span> Resumen Simple</div>
+    <p>La <strong>regla de la cadena</strong> se usa para derivar funciones compuestas, donde una función está "dentro" de otra.</p>
+    <p>Si tienes f(g(x)), la derivada es: <strong>f'(g(x)) · g'(x)</strong> — derivada exterior multiplicada por derivada interior.</p>
+    <p>Es uno de los conceptos más importantes del curso y aparecerá en el examen parcial.</p>
+  </div>`;
+}
+
+function renderNoteVisual() {
+  return `
+  <div class="note-block note-visual">
+    <div class="note-block-title"><span class="icon">🎨</span> Mapa Visual</div>
+    <div class="concept-map">
+      <div class="concept-node cn-main">
+        <span class="cn-text">⊕ Regla de la cadena</span>
+      </div>
+      <div class="concept-node cn-sub">
+        <span class="cn-text">→ Para funciones compuestas f(g(x))</span>
+      </div>
+      <div class="concept-node cn-leaf">
+        <span class="cn-text">• Identificar función exterior</span>
+      </div>
+      <div class="concept-node cn-leaf">
+        <span class="cn-text">• Identificar función interior</span>
+      </div>
+      <div class="concept-node cn-sub">
+        <span class="cn-text">→ Fórmula: f'(g(x)) · g'(x)</span>
+      </div>
+      <div class="concept-node cn-leaf">
+        <span class="cn-text">• Derivar exterior sin cambiar interior</span>
+      </div>
+      <div class="concept-node cn-leaf">
+        <span class="cn-text">• Multiplicar por derivada del interior</span>
+      </div>
+      <div class="concept-node cn-sub" style="background:#FFE5E3">
+        <span class="cn-text" style="color:var(--red)">⚠️ Viene en el examen</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderNoteSteps() {
+  return `
+  <div class="note-block note-steps">
+    <div class="note-block-title"><span class="icon">🪜</span> Paso a Paso</div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Identifica si es función compuesta</div>
+        <div class="step-desc">¿Hay una función "dentro" de otra? Si sí, aplica regla de la cadena.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Llama u a la función interior</div>
+        <div class="step-desc">Sea u = g(x). Reescribe f como función de u.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Deriva la función exterior</div>
+        <div class="step-desc">Calcula f'(u) sin tocar lo que hay dentro.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Multiplica por g'(x)</div>
+        <div class="step-desc">Resultado final: f'(g(x)) × g'(x). ¡Listo!</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TASK MODE
+═══════════════════════════════════════════════════════════════ */
+function renderTasks() {
+  return `
+  <div>
+    <div class="task-header">
+      <div class="task-title-row">
+        <h2 style="font-size:26px;font-weight:800">Modo Tareas</h2>
+        <span class="badge b-blue">Nivel ${state.level}/5</span>
+      </div>
+      <p style="font-size:14px;color:var(--g500);margin-top:4px">Practica lo visto en clase hoy</p>
+    </div>
+
+    <!-- Problem card -->
+    <div class="problem-card">
+      <div class="problem-label">Ejercicio 2 de 5 · Regla de la cadena</div>
+      <div class="problem-text">Encuentra la derivada de la siguiente función compuesta:</div>
+      <div class="problem-eq">f(x) = √(4x³ - 2x)</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:8px">
+        Expresa tu respuesta de forma simplificada.
+      </div>
+      <div class="problem-difficulty">
+        <span class="diff-star">★</span><span class="diff-star">★</span><span class="diff-star">★</span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.4)">★★</span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.4);margin-left:4px">Intermedio</span>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="task-btns">
+      <button class="btn-outline" style="flex:1" onclick="toggleHint()">
+        ${state.showHint ? '🙈 Ocultar pista' : '💡 Ver pista'}
+      </button>
+      <button class="btn-outline" style="flex:1;border-color:var(--green);color:var(--green)"
+              onclick="toggleSolution()">
+        ${state.showSolution ? '🙈 Ocultar' : '✅ Ver solución'}
+      </button>
+    </div>
+
+    ${state.showHint ? `
+    <div class="hint-box">
+      <div class="hint-label">💡 Pista</div>
+      <p style="font-size:14px;color:#6B4E00;line-height:1.6">
+        Recuerda que √u = u^(1/2). Identifica la función interior: <strong>u = 4x³ − 2x</strong>.
+        Ahora aplica la regla de la cadena con la función exterior f(u) = u^(1/2).
+      </p>
+    </div>` : ''}
+
+    ${state.showSolution ? `
+    <div class="solution-box">
+      <div class="solution-label">✅ Solución paso a paso</div>
+      <div class="solution-steps">
+        <div class="sol-step">
+          <div class="sol-num">1</div>
+          <div class="sol-text">Reescribir: <span class="sol-eq">f(x) = (4x³ - 2x)^(1/2)</span></div>
+        </div>
+        <div class="sol-step">
+          <div class="sol-num">2</div>
+          <div class="sol-text">Función exterior: <span class="sol-eq">u^(1/2)</span> → derivada: <span class="sol-eq">(1/2)u^(-1/2)</span></div>
+        </div>
+        <div class="sol-step">
+          <div class="sol-num">3</div>
+          <div class="sol-text">Función interior: <span class="sol-eq">u = 4x³ - 2x</span> → derivada: <span class="sol-eq">12x² - 2</span></div>
+        </div>
+        <div class="sol-step">
+          <div class="sol-num">4</div>
+          <div class="sol-text">Multiplicar: <span class="sol-eq">(1/2)(4x³-2x)^(-1/2) · (12x²-2)</span></div>
+        </div>
+        <div class="sol-step">
+          <div class="sol-num">5</div>
+          <div class="sol-text" style="color:var(--green);font-weight:700">
+            f'(x) = (12x² - 2) / (2√(4x³ - 2x)) ✓
+          </div>
+        </div>
+      </div>
+    </div>` : ''}
+
+    <!-- Answer input -->
+    <div class="input-answer">
+      <input class="answer-input" type="text" placeholder="Escribe tu respuesta..." id="answerInput" />
+      <button class="check-btn" onclick="checkAnswer()">→</button>
+    </div>
+
+    ${state.answerResult === 'correct' ? `
+    <div class="answer-result answer-correct">
+      🎉 ¡Correcto! Excelente trabajo — pasando al siguiente ejercicio...
+    </div>` : ''}
+    ${state.answerResult === 'wrong' ? `
+    <div class="answer-result answer-wrong">
+      ❌ No es correcto. Revisa los pasos o usa la pista.
+    </div>` : ''}
+
+    <!-- Next problem -->
+    <div style="padding:16px 20px 0;display:flex;gap:10px">
+      <button class="btn-sec" style="flex:1" onclick="prevTask()">← Anterior</button>
+      <button class="btn-primary" style="flex:2" onclick="nextTask()">Siguiente →</button>
+    </div>
+
+    <!-- Progress -->
+    <div style="padding:16px 20px 0">
+      <div style="font-size:12px;color:var(--g500);margin-bottom:6px">Progreso del módulo</div>
+      <div class="progress-wrap"><div class="progress-fill" style="width:40%"></div></div>
+      <div style="font-size:12px;color:var(--g500);margin-top:4px">2 de 5 ejercicios completados</div>
+    </div>
+    <div style="height:16px"></div>
+  </div>`;
+}
+
+function toggleHint() {
+  state.showHint = !state.showHint;
+  renderScreen();
+}
+function toggleSolution() {
+  state.showSolution = !state.showSolution;
+  renderScreen();
+}
+function checkAnswer() {
+  const val = document.getElementById('answerInput')?.value.trim();
+  if (!val) return;
+  // Accept any answer containing the key terms
+  const correct = val.includes('12x') || val.includes('6x') || val.includes('√') || val.toLowerCase().includes('raiz');
+  state.answerResult = correct ? 'correct' : 'wrong';
+  renderScreen();
+  if (correct) setTimeout(() => { state.answerResult = null; nextTask(); }, 1800);
+}
+function nextTask() {
+  state.showHint = false; state.showSolution = false; state.answerResult = null;
+  renderScreen();
+}
+function prevTask() {
+  state.showHint = false; state.showSolution = false; state.answerResult = null;
+  renderScreen();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXAM MODE
+═══════════════════════════════════════════════════════════════ */
+function renderExam() {
+  return `
+  <div id="s-exam">
+    <div class="exam-glow"></div>
+    <div class="exam-icon">🎓</div>
+    <div class="exam-title">Modo Examen<br>Activo</div>
+    <div class="exam-subtitle">"Sin ayuda. Sin trampas.<br>Solo tú y tu conocimiento."</div>
+    <div class="exam-divider"></div>
+
+    <div style="text-align:center">
+      <div class="exam-timer" id="examTimer">60:00</div>
+      <div class="exam-timer-label">Tiempo restante</div>
+    </div>
+
+    <div class="exam-rules">
+      <div class="exam-rule">
+        <span class="exam-rule-icon">🔒</span>
+        <span class="exam-rule-text">IA desactivada temporalmente</span>
+      </div>
+      <div class="exam-rule">
+        <span class="exam-rule-icon">📵</span>
+        <span class="exam-rule-text">Sin acceso a apuntes ni pistas</span>
+      </div>
+      <div class="exam-rule">
+        <span class="exam-rule-icon">👁</span>
+        <span class="exam-rule-text">Modo integridad académica activo</span>
+      </div>
+    </div>
+
+    <button class="exam-exit" onclick="exitExam()">
+      Finalizar examen
+    </button>
+  </div>`;
+}
+
+function startExamTimer() {
+  state.examSeconds = 3600;
+  clearInterval(state.examInterval);
+  state.examInterval = setInterval(() => {
+    if (state.examSeconds > 0) {
+      state.examSeconds--;
+      const el = document.getElementById('examTimer');
+      if (el) {
+        const m = Math.floor(state.examSeconds / 60).toString().padStart(2,'0');
+        const s = (state.examSeconds % 60).toString().padStart(2,'0');
+        el.textContent = `${m}:${s}`;
+      }
+    }
+  }, 1000);
+}
+
+function exitExam() {
+  clearInterval(state.examInterval);
+  state.examInterval = null;
+  navigate('dashboard');
+}
+
+/* ── Boot ─────────────────────────────────────────────────── */
+renderScreen();
+</script>
+</body>
+</html>
