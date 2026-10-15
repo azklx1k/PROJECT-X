@@ -1,1391 +1,708 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>LensLearn — AI Study Companion</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    /* ═══════════════════════════════════════════════════════════
-       LENSLEARN — DESIGN SYSTEM
-       Inspired by Apple Human Interface Guidelines
-    ═══════════════════════════════════════════════════════════ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --blue:       #0A84FF;
-      --blue-lt:    #E8F3FF;
-      --blue-dk:    #0060CC;
-      --black:      #0A0A0A;
-      --g900:       #1C1C1E;
-      --g700:       #3A3A3C;
-      --g500:       #636366;
-      --g300:       #C7C7CC;
-      --g200:       #E5E5EA;
-      --g100:       #F2F2F7;
-      --white:      #FFFFFF;
-      --green:      #30D158;
-      --red:        #FF453A;
-      --yellow:     #FFD60A;
-      --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-xl: 32px;
-      --sh-sm: 0 1px 6px rgba(0,0,0,0.07);
-      --sh-md: 0 4px 24px rgba(0,0,0,0.10);
-      --sh-lg: 0 12px 48px rgba(0,0,0,0.15);
-      --ease: cubic-bezier(0.4,0,0.2,1);
-      --f: 'Inter', -apple-system, sans-serif;
-    }
-
-    html, body { height: 100%; background: #D1D1D6; font-family: var(--f); -webkit-font-smoothing: antialiased; }
-    #root { height: 100%; display: flex; align-items: center; justify-content: center; }
-
-    /* Phone shell */
-    .shell {
-      position: relative;
-      width: 100%; max-width: 393px;
-      height: 100dvh; max-height: 852px;
-      background: var(--g100);
-      overflow: hidden;
-      display: flex; flex-direction: column;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
-      border-radius: 0;
-    }
-
-    @media (min-width: 430px) {
-      .shell { border-radius: 54px; border: 10px solid #1a1a1a; height: 852px; }
-    }
-
-    /* Screen */
-    .screen {
-      flex: 1; overflow-y: auto; overflow-x: hidden;
-      padding-bottom: 88px;
-      animation: fadeUp 0.32s var(--ease) both;
-      scrollbar-width: none;
-    }
-    .screen::-webkit-scrollbar { display: none; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Status bar */
-    .status-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 24px 8px;
-      background: transparent;
-      flex-shrink: 0;
-    }
-    .status-time { font-size: 15px; font-weight: 600; color: var(--black); }
-    .status-icons { display: flex; gap: 6px; align-items: center; }
-    .status-icons span { font-size: 13px; }
-
-    /* ── Bottom nav ─────────────────────────────────────────── */
-    .bottom-nav {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      height: 80px;
-      background: rgba(255,255,255,0.88);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid rgba(0,0,0,0.06);
-      display: flex; align-items: center; justify-content: space-around;
-      padding: 0 4px 8px;
-      z-index: 90;
-    }
-    .nav-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 3px;
-      padding: 8px 14px; border: none; background: none; cursor: pointer;
-      border-radius: 14px; transition: all 0.2s var(--ease);
-      font-family: var(--f); position: relative; min-width: 68px;
-    }
-    .nav-btn:active { transform: scale(0.9); }
-    .nav-icon { font-size: 22px; transition: all 0.2s; color: var(--g500); line-height: 1; }
-    .nav-label { font-size: 10px; font-weight: 500; color: var(--g500); transition: color 0.2s; }
-    .nav-btn.active .nav-icon { color: var(--blue); transform: scale(1.1); }
-    .nav-btn.active .nav-label { color: var(--blue); font-weight: 700; }
-    .nav-dot { position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
-
-    /* ── Shared UI atoms ────────────────────────────────────── */
-    .card { background: var(--white); border-radius: var(--r-md); padding: 20px; box-shadow: var(--sh-sm); }
-    .card-dark { background: var(--g900); border-radius: var(--r-md); padding: 20px; }
-    .px { padding-left: 20px; padding-right: 20px; }
-    .py { padding-top: 16px; padding-bottom: 16px; }
-
-    .btn-primary {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; padding: 16px; background: var(--blue); color: var(--white);
-      font-size: 16px; font-weight: 600; border: none; border-radius: var(--r-md);
-      cursor: pointer; transition: all 0.2s var(--ease); font-family: var(--f);
-    }
-    .btn-primary:hover { background: var(--blue-dk); transform: translateY(-1px); box-shadow: var(--sh-md); }
-    .btn-primary:active { transform: translateY(0) scale(0.98); }
-
-    .btn-sec {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; padding: 14px; background: var(--g100); color: var(--black);
-      font-size: 15px; font-weight: 500; border: none; border-radius: var(--r-md);
-      cursor: pointer; transition: all 0.2s; font-family: var(--f);
-    }
-    .btn-sec:hover { background: var(--g200); }
-
-    .btn-outline {
-      padding: 11px 20px; border: 1.5px solid var(--g300); background: none;
-      color: var(--g700); font-size: 14px; font-weight: 500;
-      border-radius: var(--r-sm); cursor: pointer; transition: all 0.2s;
-      font-family: var(--f);
-    }
-    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
-
-    .badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
-    }
-    .b-blue   { background: var(--blue-lt); color: var(--blue); }
-    .b-green  { background: #D1F5DC; color: #1C7A36; }
-    .b-yellow { background: #FFF9CC; color: #8A6500; }
-    .b-red    { background: #FFE5E3; color: #C0392B; }
-    .b-dark   { background: var(--g700); color: var(--white); }
-
-    .section-hd {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .section-hd h3 { font-size: 18px; font-weight: 700; }
-    .section-hd .see-all { font-size: 14px; color: var(--blue); font-weight: 500; cursor: pointer; }
-
-    .progress-wrap { height: 6px; background: var(--g200); border-radius: 6px; overflow: hidden; }
-    .progress-fill { height: 100%; background: var(--blue); border-radius: 6px; transition: width 0.6s ease; }
-
-    .live-dot {
-      width: 8px; height: 8px; background: var(--red);
-      border-radius: 50%; animation: livepulse 1.4s ease-in-out infinite;
-    }
-    @keyframes livepulse {
-      0%,100% { opacity:1; transform:scale(1); }
-      50%      { opacity:0.35; transform:scale(0.65); }
-    }
-
-    .pill-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
-    .pill-row::-webkit-scrollbar { display: none; }
-    .pill {
-      flex-shrink: 0; padding: 8px 18px; border-radius: 20px;
-      font-size: 14px; font-weight: 500; border: none; cursor: pointer;
-      transition: all 0.2s; font-family: var(--f);
-      background: var(--white); color: var(--g500);
-    }
-    .pill.on { background: var(--blue); color: var(--white); }
-    .pill:hover:not(.on) { background: var(--g200); }
-
-    .chip {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500;
-    }
-
-    .divider { height: 1px; background: var(--g200); margin: 4px 0; }
-
-    /* ═══════════════════════════════════════════════════════════
-       ONBOARDING SCREEN
-    ═══════════════════════════════════════════════════════════ */
-    #s-onboarding {
-      background: linear-gradient(160deg, #0A0A0A 0%, #1a1a2e 50%, #0A0A0A 100%);
-      min-height: 100%; padding: 0; display: flex; flex-direction: column;
-    }
-    .ob-hero {
-      padding: 48px 28px 32px;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .ob-logo {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
-    }
-    .ob-logo-icon {
-      width: 44px; height: 44px; background: var(--blue);
-      border-radius: 12px; display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-    }
-    .ob-logo-text { font-size: 22px; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
-    .ob-logo-text span { color: var(--blue); }
-    .ob-tag { font-size: 12px; font-weight: 600; color: var(--blue); letter-spacing: 1.5px; text-transform: uppercase; }
-    .ob-title { font-size: 32px; font-weight: 900; color: var(--white); line-height: 1.15; letter-spacing: -0.5px; }
-    .ob-title span { color: var(--blue); }
-    .ob-sub { font-size: 15px; color: #8E8E93; line-height: 1.6; margin-top: 4px; }
-
-    .ob-card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: var(--r-lg); margin: 0 20px; padding: 24px;
-      backdrop-filter: blur(10px);
-    }
-    .ob-section-label {
-      font-size: 11px; font-weight: 700; color: #636366;
-      text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 14px;
-    }
-
-    .style-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .style-opt {
-      padding: 16px 14px; border-radius: var(--r-sm);
-      background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08);
-      cursor: pointer; transition: all 0.2s; text-align: center;
-    }
-    .style-opt.on {
-      background: rgba(10,132,255,0.15); border-color: var(--blue);
-    }
-    .style-opt:hover:not(.on) { border-color: rgba(255,255,255,0.2); }
-    .style-opt-icon { font-size: 24px; display: block; margin-bottom: 6px; }
-    .style-opt-label { font-size: 13px; font-weight: 600; color: var(--white); }
-    .style-opt-sub { font-size: 11px; color: #636366; margin-top: 2px; }
-
-    .level-slider {
-      width: 100%; accent-color: var(--blue);
-      height: 4px; appearance: none; -webkit-appearance: none;
-      background: linear-gradient(to right, var(--blue) 50%, rgba(255,255,255,0.1) 50%);
-      border-radius: 4px; outline: none; cursor: pointer;
-    }
-    .level-labels { display: flex; justify-content: space-between; margin-top: 8px; }
-    .level-label-text { font-size: 12px; color: #636366; font-weight: 500; }
-
-    .ob-bottom { padding: 20px; margin-top: auto; }
-    .ob-bottom .btn-primary { border-radius: var(--r-lg); padding: 18px; font-size: 17px; }
-    .ob-terms { font-size: 11px; color: #48484A; text-align: center; margin-top: 10px; }
-
-    /* ═══════════════════════════════════════════════════════════
-       DASHBOARD SCREEN
-    ═══════════════════════════════════════════════════════════ */
-    #s-dashboard { padding-bottom: 100px; }
-
-    .dash-header {
-      padding: 8px 20px 20px;
-      background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0) 100%);
-    }
-    .dash-greeting { font-size: 14px; color: var(--g500); font-weight: 500; }
-    .dash-name { font-size: 26px; font-weight: 800; color: var(--black); margin-top: 2px; }
-
-    .class-card {
-      margin: 0 20px 20px;
-      background: linear-gradient(135deg, #0A84FF 0%, #0040AA 100%);
-      border-radius: var(--r-lg); padding: 24px; position: relative; overflow: hidden;
-    }
-    .class-card::after {
-      content: ''; position: absolute; top: -30px; right: -30px;
-      width: 140px; height: 140px; border-radius: 50%;
-      background: rgba(255,255,255,0.06);
-    }
-    .class-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
-    .class-name { font-size: 22px; font-weight: 800; color: var(--white); margin: 6px 0 4px; }
-    .class-meta { font-size: 13px; color: rgba(255,255,255,0.7); }
-    .class-progress { margin-top: 16px; }
-    .class-progress-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .class-progress-label span { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500; }
-    .class-progress-bar { height: 5px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; }
-    .class-progress-fill { height: 100%; background: var(--white); border-radius: 5px; width: 68%; }
-    .class-actions { display: flex; gap: 8px; margin-top: 16px; }
-    .class-btn {
-      flex: 1; padding: 10px; background: rgba(255,255,255,0.15);
-      border: none; border-radius: var(--r-sm); color: var(--white);
-      font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-      font-family: var(--f);
-    }
-    .class-btn:hover { background: rgba(255,255,255,0.25); }
-    .class-btn.main-btn { background: var(--white); color: var(--blue); }
-
-    .kw-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    .kw-chip {
-      padding: 6px 12px; background: var(--blue-lt); color: var(--blue);
-      border-radius: 20px; font-size: 12px; font-weight: 600;
-      display: flex; align-items: center; gap: 5px;
-    }
-    .kw-exam { background: #FFF3CC; color: #7A5800; }
-
-    .study-list { display: flex; flex-direction: column; gap: 10px; }
-    .study-item {
-      display: flex; align-items: center; gap: 14px;
-      padding: 14px 16px; background: var(--white);
-      border-radius: var(--r-md); box-shadow: var(--sh-sm);
-    }
-    .study-rank {
-      width: 32px; height: 32px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px; font-weight: 800; flex-shrink: 0;
-    }
-    .rank-1 { background: #FFF3CC; color: #7A5800; }
-    .rank-2 { background: var(--blue-lt); color: var(--blue); }
-    .rank-3 { background: #F0E8FF; color: #6B3FA0; }
-    .study-info { flex: 1; }
-    .study-name { font-size: 14px; font-weight: 600; color: var(--black); }
-    .study-sub  { font-size: 12px; color: var(--g500); margin-top: 2px; }
-
-    .summary-row { display: flex; gap: 10px; margin: 0 20px 20px; }
-    .summary-box {
-      flex: 1; background: var(--white); border-radius: var(--r-md);
-      padding: 16px; box-shadow: var(--sh-sm); text-align: center;
-    }
-    .summary-val { font-size: 26px; font-weight: 800; color: var(--black); }
-    .summary-unit { font-size: 11px; color: var(--g500); font-weight: 500; margin-top: 2px; }
-
-    /* ═══════════════════════════════════════════════════════════
-       LIVE CLASS SCREEN
-    ═══════════════════════════════════════════════════════════ */
-    #s-live { padding-bottom: 100px; }
-
-    .live-header {
-      padding: 8px 20px 16px;
-      background: var(--white);
-      border-bottom: 1px solid var(--g200);
-    }
-    .live-top { display: flex; align-items: center; justify-content: space-between; }
-    .live-indicator {
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 12px; background: #FFE5E3; border-radius: 20px;
-    }
-    .live-indicator span { font-size: 12px; font-weight: 700; color: var(--red); }
-    .live-timer { font-size: 13px; font-weight: 600; color: var(--g500); }
-
-    .live-board {
-      margin: 16px 20px;
-      background: var(--g900); border-radius: var(--r-md);
-      min-height: 160px; display: flex; align-items: center; justify-content: center;
-      position: relative; overflow: hidden;
-    }
-    .live-board-content {
-      padding: 20px; font-size: 13px; color: rgba(255,255,255,0.85);
-      font-family: 'Courier New', monospace; line-height: 1.7; text-align: left; width: 100%;
-    }
-    .board-eq { color: #7EB8FF; font-weight: 700; font-size: 16px; }
-    .board-highlight { color: var(--yellow); }
-    .board-label {
-      position: absolute; top: 10px; left: 12px;
-      font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3);
-      text-transform: uppercase; letter-spacing: 1px;
-    }
-
-    .transcript-box {
-      margin: 0 20px 16px;
-      background: var(--white); border-radius: var(--r-md);
-      padding: 16px; box-shadow: var(--sh-sm); min-height: 140px;
-    }
-    .transcript-label {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 11px; font-weight: 700; color: var(--g500);
-      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
-    }
-    .transcript-text { font-size: 14px; color: var(--black); line-height: 1.7; }
-    .transcript-cursor {
-      display: inline-block; width: 2px; height: 14px;
-      background: var(--blue); border-radius: 1px; margin-left: 2px;
-      animation: blink 1s ease-in-out infinite;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-    .transcript-new { color: var(--blue); }
-
-    .important-highlight {
-      margin: 0 20px 16px; padding: 12px 16px;
-      background: linear-gradient(135deg, #FFF8CC, #FFF3AA);
-      border-radius: var(--r-sm); border-left: 3px solid var(--yellow);
-      display: flex; align-items: flex-start; gap: 10px;
-    }
-    .imp-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-    .imp-label { font-size: 10px; font-weight: 700; color: #7A5800; text-transform: uppercase; letter-spacing: 1px; }
-    .imp-text { font-size: 13px; color: var(--black); line-height: 1.5; margin-top: 2px; }
-
-    .live-actions { padding: 0 20px; display: flex; gap: 10px; }
-    .mark-btn {
-      flex: 1; padding: 14px; border: none; border-radius: var(--r-md);
-      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-      font-family: var(--f); display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .mark-btn.primary { background: var(--blue); color: var(--white); flex: 2; }
-    .mark-btn.primary:hover { background: var(--blue-dk); }
-    .mark-btn.secondary { background: var(--white); color: var(--black); border: 1.5px solid var(--g200); }
-
-    /* ═══════════════════════════════════════════════════════════
-       SMART NOTES SCREEN
-    ═══════════════════════════════════════════════════════════ */
-    #s-notes { padding-bottom: 100px; }
-
-    .notes-header { padding: 8px 20px 16px; }
-    .notes-title { font-size: 26px; font-weight: 800; color: var(--black); margin-bottom: 4px; }
-    .notes-sub { font-size: 14px; color: var(--g500); }
-
-    .note-block {
-      margin: 0 20px 16px;
-      background: var(--white); border-radius: var(--r-md);
-      padding: 20px; box-shadow: var(--sh-sm);
-      animation: fadeUp 0.3s var(--ease) both;
-    }
-    .note-block-title {
-      font-size: 16px; font-weight: 700; color: var(--black);
-      display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-    }
-    .note-block-title .icon { font-size: 20px; }
-
-    /* Simple style */
-    .note-simple p { font-size: 14px; color: var(--g700); line-height: 1.7; }
-    .note-simple p + p { margin-top: 8px; }
-    .note-simple strong { color: var(--black); }
-
-    /* Visual style */
-    .note-visual .concept-map {
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .concept-node {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; border-radius: var(--r-sm);
-    }
-    .cn-main { background: var(--blue); }
-    .cn-sub  { background: var(--blue-lt); margin-left: 20px; }
-    .cn-leaf { background: var(--g100); margin-left: 40px; }
-    .cn-arrow { color: rgba(255,255,255,0.5); font-size: 12px; }
-    .cn-main .cn-text { font-size: 14px; font-weight: 700; color: var(--white); }
-    .cn-sub  .cn-text { font-size: 13px; font-weight: 600; color: var(--blue); }
-    .cn-leaf .cn-text { font-size: 13px; color: var(--g700); }
-
-    /* Step-by-step style */
-    .note-steps .step {
-      display: flex; gap: 12px; align-items: flex-start;
-      padding: 10px 0;
-    }
-    .note-steps .step + .step { border-top: 1px solid var(--g100); }
-    .step-num {
-      width: 26px; height: 26px; border-radius: 8px;
-      background: var(--blue); color: var(--white);
-      font-size: 13px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .step-content { flex: 1; }
-    .step-title { font-size: 14px; font-weight: 600; color: var(--black); }
-    .step-desc { font-size: 13px; color: var(--g500); margin-top: 3px; line-height: 1.5; }
-
-    /* Example */
-    .example-box {
-      background: linear-gradient(135deg, #F0F8FF, #E8F3FF);
-      border-radius: var(--r-sm); padding: 16px;
-      border: 1.5px solid var(--blue-lt);
-    }
-    .example-label { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .example-eq { font-size: 18px; font-weight: 700; color: var(--black); margin: 8px 0; font-family: 'Courier New', monospace; }
-    .example-step { font-size: 13px; color: var(--g700); line-height: 1.6; }
-    .example-result { font-size: 15px; font-weight: 700; color: var(--green); margin-top: 8px; }
-
-    /* ═══════════════════════════════════════════════════════════
-       TASK MODE SCREEN
-    ═══════════════════════════════════════════════════════════ */
-    #s-tasks { padding-bottom: 100px; }
-
-    .task-header { padding: 8px 20px 20px; }
-    .task-title-row { display: flex; align-items: center; justify-content: space-between; }
-
-    .problem-card {
-      margin: 0 20px 16px;
-      background: linear-gradient(135deg, #1a1a2e 0%, #0A0A0A 100%);
-      border-radius: var(--r-lg); padding: 24px;
-    }
-    .problem-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1.2px; }
-    .problem-text { font-size: 17px; color: var(--white); font-weight: 600; line-height: 1.5; margin: 10px 0; }
-    .problem-eq { font-size: 22px; font-weight: 800; color: var(--blue); font-family: 'Courier New', monospace; margin: 12px 0; }
-    .problem-difficulty { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
-    .diff-star { color: var(--yellow); font-size: 16px; }
-
-    .task-btns { display: flex; gap: 10px; padding: 0 20px; margin-bottom: 16px; }
-
-    .hint-box, .solution-box {
-      margin: 0 20px 16px; padding: 18px;
-      border-radius: var(--r-md); animation: fadeUp 0.3s var(--ease);
-    }
-    .hint-box { background: #FFF8E0; border: 1.5px solid #FFD60A; }
-    .solution-box { background: #E8F8EE; border: 1.5px solid var(--green); }
-    .hint-label { font-size: 11px; font-weight: 700; color: #8A6500; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .solution-label { font-size: 11px; font-weight: 700; color: #1C7A36; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-
-    .solution-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
-    .sol-step { display: flex; gap: 10px; align-items: flex-start; }
-    .sol-num {
-      width: 22px; height: 22px; border-radius: 6px; background: var(--green);
-      color: var(--white); font-size: 11px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .sol-text { font-size: 14px; color: var(--g700); line-height: 1.5; }
-    .sol-eq { color: var(--black); font-weight: 700; font-family: 'Courier New', monospace; }
-
-    .input-answer {
-      margin: 0 20px; display: flex; gap: 10px;
-    }
-    .answer-input {
-      flex: 1; padding: 14px 16px; font-size: 16px; font-family: 'Courier New', monospace;
-      border: 1.5px solid var(--g300); border-radius: var(--r-md);
-      outline: none; transition: border 0.2s;
-      background: var(--white);
-    }
-    .answer-input:focus { border-color: var(--blue); }
-    .check-btn {
-      padding: 14px 20px; background: var(--blue); color: var(--white);
-      border: none; border-radius: var(--r-md); font-size: 14px; font-weight: 600;
-      cursor: pointer; font-family: var(--f); transition: all 0.2s;
-    }
-    .check-btn:hover { background: var(--blue-dk); }
-
-    .answer-result {
-      margin: 12px 20px 0; padding: 14px 16px;
-      border-radius: var(--r-md); font-size: 15px; font-weight: 600;
-      animation: fadeUp 0.25s ease;
-    }
-    .answer-correct { background: #E8F8EE; color: #1C7A36; border: 1.5px solid var(--green); }
-    .answer-wrong   { background: #FFE5E3; color: #C0392B; border: 1.5px solid var(--red); }
-
-    /* ═══════════════════════════════════════════════════════════
-       EXAM MODE SCREEN
-    ═══════════════════════════════════════════════════════════ */
-    #s-exam {
-      background: #000; min-height: 100%;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 40px 28px; position: relative;
-    }
-    .exam-glow {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-      width: 280px; height: 280px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(10,132,255,0.08) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .exam-icon { font-size: 56px; margin-bottom: 24px; }
-    .exam-title { font-size: 28px; font-weight: 900; color: var(--white); text-align: center; letter-spacing: -0.5px; }
-    .exam-subtitle { font-size: 15px; color: #48484A; text-align: center; margin-top: 8px; font-style: italic; }
-    .exam-divider { width: 40px; height: 2px; background: var(--blue); border-radius: 2px; margin: 24px auto; }
-    .exam-rules { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 280px; }
-    .exam-rule {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 16px; background: rgba(255,255,255,0.04);
-      border-radius: var(--r-sm); border: 1px solid rgba(255,255,255,0.06);
-    }
-    .exam-rule-icon { font-size: 18px; }
-    .exam-rule-text { font-size: 13px; color: #8E8E93; font-weight: 500; }
-    .exam-timer {
-      font-size: 48px; font-weight: 900; color: var(--white);
-      letter-spacing: -1px; font-family: 'Courier New', monospace;
-      margin: 28px 0 8px;
-    }
-    .exam-timer-label { font-size: 11px; color: #48484A; text-transform: uppercase; letter-spacing: 1.5px; }
-    .exam-exit {
-      margin-top: 36px; padding: 14px 40px;
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: var(--r-md); color: #636366; font-size: 14px; font-weight: 500;
-      cursor: pointer; font-family: var(--f); transition: all 0.2s;
-    }
-    .exam-exit:hover { background: rgba(255,255,255,0.10); color: var(--white); }
-
-    /* ── Misc ─────────────────────────────────────────────── */
-    .spacer { height: 16px; }
-    .spacer-sm { height: 8px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prime Fitness · Alpha Prime Inc.</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --bg:#07090d; --bg2:#0e1218; --card:#141a22; --card2:#1b2330; --line:#243040;
+  --neon:#b6ff00; --neon2:#ff6a00; --cyan:#00e0ff; --pink:#ff2d87; --red:#ff4757;
+  --txt:#f2f5f9; --mut:#8a97a8;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;background:radial-gradient(circle at 20% 10%,#1a2a0a 0,transparent 40%),radial-gradient(circle at 85% 90%,#2a1405 0,transparent 40%),#04060a;color:var(--txt);display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden}
+.phone{position:relative;width:min(400px,100vw);aspect-ratio:9/18.5;max-height:96vh;background:var(--bg);border-radius:44px;border:10px solid #1c222c;box-shadow:0 0 0 2px #2d3644,0 30px 80px rgba(0,0,0,.8),0 0 60px rgba(182,255,0,.12);overflow:hidden;display:flex;flex-direction:column}
+@media(max-width:500px){.phone{border-radius:0;border:0;max-height:100vh;height:100vh;aspect-ratio:auto;width:100vw}}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:110px;height:26px;background:#000;border-radius:20px;z-index:50}
+.status{display:flex;justify-content:space-between;padding:12px 26px 0;font-size:12px;font-weight:600;z-index:40;height:34px}
+.status span i{margin-left:5px;font-size:11px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 6px}
+.topbar h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.topbar h1 b{color:var(--neon)}
+.topbar small{display:block;color:var(--mut);font-size:11px;font-weight:500}
+.pill-btn{background:linear-gradient(135deg,var(--neon),#7dd300);color:#0a1200;border:0;padding:7px 12px;border-radius:20px;font-weight:800;font-size:11px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.views{flex:1;position:relative;overflow:hidden}
+.view{position:absolute;inset:0;overflow-y:auto;padding:6px 16px 20px;opacity:0;transform:translateX(24px);pointer-events:none;transition:.35s ease;scrollbar-width:none}
+.view::-webkit-scrollbar{display:none}
+.view.active{opacity:1;transform:none;pointer-events:auto}
+.nav{display:flex;background:rgba(14,18,24,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 6px 14px}
+.nav button{flex:1;background:none;border:0;color:var(--mut);display:flex;flex-direction:column;gap:4px;align-items:center;font-size:10px;font-weight:600;cursor:pointer;transition:.25s;position:relative}
+.nav button i{font-size:18px;transition:.25s}
+.nav button.active{color:var(--neon)}
+.nav button.active i{transform:translateY(-3px);filter:drop-shadow(0 0 8px var(--neon))}
+.nav button.active::after{content:'';position:absolute;top:-9px;width:26px;height:3px;background:var(--neon);border-radius:3px;box-shadow:0 0 10px var(--neon)}
+h2.sec{font-size:15px;font-weight:700;margin:18px 0 10px;display:flex;justify-content:space-between;align-items:center}
+h2.sec a{font-size:11px;color:var(--neon);font-weight:600;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:12px}
+.hello{margin:4px 0 12px}
+.hello h3{font-size:22px;font-weight:800}
+.hello p{color:var(--mut);font-size:12px}
+.rings-wrap{display:flex;align-items:center;gap:14px}
+.rings{position:relative;width:150px;height:150px;flex-shrink:0}
+.rings svg{transform:rotate(-90deg)}
+.rings circle{fill:none;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.rings .bg{stroke:#1f2834}
+.ring-legend{flex:1;display:flex;flex-direction:column;gap:10px}
+.ring-legend div{font-size:11px;color:var(--mut)}
+.ring-legend b{display:block;font-size:16px;color:var(--txt)}
+.ring-legend i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.bio{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bio-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px}
+.live{color:var(--red);font-weight:700;font-size:10px;display:flex;align-items:center;gap:5px}
+.live::before{content:'';width:7px;height:7px;background:var(--red);border-radius:50%;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.2;transform:scale(1.5)}}
+.bpm{grid-column:span 2;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#2a0d14,#1a1016);border-radius:16px;padding:12px;border:1px solid #3d1520}
+.bpm .heart{font-size:30px;color:var(--red);animation:beat .8s infinite}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.18)}}
+.bpm .num{font-size:36px;font-weight:800;line-height:1}
+.bpm .num small{font-size:12px;color:var(--mut);font-weight:500}
+.bpm canvas{flex:1;height:44px;width:100%}
+.mini{background:var(--card2);border-radius:14px;padding:10px;font-size:11px;color:var(--mut)}
+.mini b{display:block;font-size:17px;color:var(--txt);margin-top:3px}
+.mini i{color:var(--cyan);margin-right:4px}
+.devices{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.dev{font-size:10px;background:#0f1d12;border:1px solid #20401f;color:var(--neon);padding:4px 9px;border-radius:12px;display:flex;gap:5px;align-items:center}
+.challenge{display:flex;gap:12px;align-items:center}
+.challenge .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:19px;flex-shrink:0}
+.challenge .info{flex:1}
+.challenge .info b{font-size:13px;display:block}
+.challenge .info small{color:var(--mut);font-size:11px}
+.bar{height:6px;background:#1f2834;border-radius:6px;margin-top:7px;overflow:hidden}
+.bar>div{height:100%;border-radius:6px;transition:width .8s}
+.reward{background:rgba(182,255,0,.12);color:var(--neon);font-weight:800;font-size:12px;padding:5px 9px;border-radius:10px}
+.map{position:relative;height:230px;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:#0b1118}
+.map svg{width:100%;height:100%}
+.map-hud{position:absolute;left:10px;right:10px;bottom:10px;display:flex;gap:8px}
+.map-hud div{flex:1;background:rgba(7,9,13,.85);backdrop-filter:blur(8px);border-radius:12px;padding:8px;text-align:center;font-size:10px;color:var(--mut)}
+.map-hud b{display:block;font-size:17px;color:var(--txt);font-variant-numeric:tabular-nums}
+.map-tag{position:absolute;top:10px;left:10px;background:rgba(7,9,13,.85);padding:5px 10px;border-radius:12px;font-size:10px;font-weight:700;color:var(--neon)}
+.run-btn{width:100%;margin-top:10px;padding:14px;border-radius:16px;border:0;font-weight:800;font-size:14px;cursor:pointer;background:linear-gradient(135deg,var(--neon),#7dd300);color:#0a1200;display:flex;justify-content:center;gap:8px;align-items:center;box-shadow:0 0 22px rgba(182,255,0,.3)}
+.run-btn.stop{background:linear-gradient(135deg,var(--red),#c0182a);color:#fff;box-shadow:0 0 22px rgba(255,71,87,.3)}
+.zone{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:14px;margin-bottom:6px;background:var(--card2);border:1px solid transparent;transition:.3s;opacity:.55}
+.zone.on{opacity:1;border-color:currentColor;box-shadow:0 0 18px -4px currentColor;transform:scale(1.02)}
+.zone .dot{width:10px;height:10px;border-radius:50%;background:currentColor}
+.zone b{font-size:12px;color:var(--txt);flex:1}
+.zone small{color:var(--mut);font-size:10px}
+.carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.carousel::-webkit-scrollbar{display:none}
+.routine{min-width:190px;height:160px;border-radius:20px;padding:14px;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden;cursor:pointer;transition:.25s}
+.routine:active{transform:scale(.97)}
+.routine i.bgi{position:absolute;top:10px;right:12px;font-size:52px;opacity:.25}
+.routine b{font-size:15px}
+.routine small{font-size:11px;opacity:.85;margin-top:3px}
+.routine .play{position:absolute;top:12px;left:12px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;font-size:12px}
+.macro-row{margin-bottom:11px}
+.macro-row .l{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.macro-row .l span{color:var(--mut)}
+.burn-note{font-size:11px;color:var(--neon2);background:rgba(255,106,0,.1);border-radius:10px;padding:8px 10px;margin-top:4px;display:flex;gap:8px;align-items:center}
+.tokens{display:flex;align-items:center;gap:12px}
+.tokens .coin{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#ffe27a,#ff9d00);display:grid;place-items:center;color:#5a3300;font-size:20px;box-shadow:0 0 18px rgba(255,157,0,.4)}
+.tokens .t{flex:1}
+.tokens b{font-size:15px}
+.tokens small{font-size:11px;color:var(--mut)}
+.recharge{width:100%;margin-top:12px;padding:13px;border:0;border-radius:14px;font-weight:800;font-size:13px;background:linear-gradient(135deg,var(--neon2),#ff3d00);color:#fff;cursor:pointer;display:flex;gap:8px;justify-content:center;align-items:center;box-shadow:0 0 20px rgba(255,106,0,.35)}
+.recharge.pulse{animation:glow 1.2s infinite}
+@keyframes glow{50%{box-shadow:0 0 34px rgba(255,106,0,.8)}}
+.chat{display:flex;flex-direction:column;height:300px}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:8px;scrollbar-width:none}
+.msg{max-width:84%;padding:9px 12px;border-radius:16px;font-size:12px;line-height:1.45;animation:pop .3s}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}}
+.msg.bot{background:var(--card2);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.me{background:var(--neon);color:#0a1200;align-self:flex-end;border-bottom-right-radius:4px;font-weight:600}
+.chat-in{display:flex;gap:8px}
+.chat-in input{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:11px 13px;color:var(--txt);font-size:12px;outline:none}
+.chat-in input:focus{border-color:var(--neon)}
+.chat-in button{width:42px;border-radius:14px;border:0;background:var(--neon);color:#0a1200;cursor:pointer}
+.quick{display:flex;gap:6px;overflow-x:auto;margin-bottom:8px;scrollbar-width:none}
+.quick button{white-space:nowrap;background:var(--card2);border:1px solid var(--line);color:var(--txt);font-size:10px;padding:6px 10px;border-radius:12px;cursor:pointer}
+.coach{display:flex;gap:12px;margin-bottom:12px}
+.avatar{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;font-weight:800;font-size:22px;color:#06090d;flex-shrink:0;position:relative}
+.avatar .ver{position:absolute;bottom:-5px;right:-5px;background:var(--cyan);color:#001a1f;width:20px;height:20px;border-radius:50%;font-size:10px;display:grid;place-items:center;border:2px solid var(--card)}
+.coach .info{flex:1}
+.coach .info b{font-size:14px}
+.coach .info .esp{font-size:11px;color:var(--mut);margin:2px 0}
+.coach .rate{font-size:11px;color:#ffc933}
+.coach .rate span{color:var(--mut)}
+.flag{display:inline-block;font-size:9px;background:rgba(0,224,255,.12);color:var(--cyan);padding:2px 7px;border-radius:8px;margin-top:3px;font-weight:700}
+.hire{width:100%;margin-top:10px;padding:10px;border-radius:12px;border:1px solid var(--neon);background:transparent;color:var(--neon);font-weight:800;font-size:12px;cursor:pointer;transition:.25s}
+.hire:hover,.hire.done{background:var(--neon);color:#0a1200}
+.filters{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.filters button{white-space:nowrap;background:var(--card);border:1px solid var(--line);color:var(--mut);padding:7px 13px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer}
+.filters button.on{background:var(--neon);color:#0a1200;border-color:var(--neon)}
+.info-box{font-size:11px;color:var(--mut);background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:10px;margin-bottom:12px;display:flex;gap:8px}
+.info-box i{color:var(--neon);margin-top:2px}
+.wallet{background:linear-gradient(135deg,#1c3300,#0c1a00 60%,#102a10);border:1px solid #2f5500;border-radius:24px;padding:18px;position:relative;overflow:hidden;margin-bottom:12px}
+.wallet::after{content:'';position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(var(--neon),transparent 70%);opacity:.2}
+.wallet small{color:#a7c97a;font-size:11px}
+.wallet h2{font-size:36px;font-weight:800;margin:4px 0 2px}
+.wallet .row{display:flex;gap:8px;margin-top:12px}
+.wallet .row button{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;padding:9px 4px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer}
+.tx{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:12px}
+.tx:last-child{border:0}
+.tx .ti{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--card2);font-size:13px}
+.tx div{flex:1}
+.tx small{display:block;color:var(--mut);font-size:10px}
+.tx b.p{color:var(--neon)}.tx b.m{color:var(--red)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prod{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:10px;display:flex;flex-direction:column}
+.prod .img{height:100px;border-radius:13px;display:grid;place-items:center;font-size:40px;margin-bottom:8px;position:relative}
+.prod .tag{position:absolute;top:6px;left:6px;font-size:9px;font-weight:800;background:#000a;padding:3px 6px;border-radius:7px}
+.prod b{font-size:12px}
+.prod small{font-size:10px;color:var(--mut);margin:2px 0 6px;flex:1}
+.prod .pr{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:14px}
+.prod .pr s{font-size:10px;color:var(--mut);font-weight:400;margin-left:4px}
+.buy{margin-top:8px;border:0;background:var(--neon);color:#0a1200;font-weight:800;font-size:11px;padding:8px;border-radius:11px;cursor:pointer;display:flex;gap:6px;justify-content:center;align-items:center}
+.buy:active{transform:scale(.96)}
+.cart-badge{background:var(--neon2);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:800}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:60;opacity:0;pointer-events:none;transition:.3s;display:flex;align-items:flex-end}
+.overlay.show{opacity:1;pointer-events:auto}
+.sheet{width:100%;max-height:92%;background:var(--bg2);border-radius:30px 30px 0 0;padding:18px 16px 26px;overflow-y:auto;transform:translateY(100%);transition:.4s cubic-bezier(.2,.8,.2,1);scrollbar-width:none;border-top:1px solid var(--line)}
+.overlay.show .sheet{transform:none}
+.sheet .grab{width:44px;height:4px;background:var(--line);border-radius:4px;margin:0 auto 12px}
+.sheet h3{font-size:19px;text-align:center;font-weight:800}
+.sheet .sub{text-align:center;font-size:12px;color:var(--mut);margin:3px 0 14px}
+.close{position:absolute;right:14px;top:14px;background:var(--card2);border:0;color:var(--txt);width:30px;height:30px;border-radius:50%;cursor:pointer}
+.toggle{display:flex;background:var(--card);border-radius:16px;padding:4px;margin:0 auto 16px;border:1px solid var(--line);position:relative}
+.toggle button{flex:1;background:none;border:0;color:var(--mut);font-weight:700;font-size:12px;padding:10px 6px;border-radius:12px;cursor:pointer;z-index:1;transition:.25s}
+.toggle button.on{background:var(--neon);color:#0a1200}
+.toggle em{font-style:normal;font-size:9px;background:var(--neon2);color:#fff;padding:2px 6px;border-radius:8px;margin-left:4px}
+.plan{border:1.5px solid var(--line);border-radius:22px;padding:16px;margin-bottom:12px;background:var(--card);position:relative;transition:.25s}
+.plan.cur{border-color:var(--neon);box-shadow:0 0 24px -6px var(--neon)}
+.plan .badge{position:absolute;top:-10px;right:16px;font-size:10px;font-weight:800;padding:3px 10px;border-radius:10px}
+.plan h4{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.plan .price{font-size:30px;font-weight:800;margin:6px 0 0}
+.plan .price small{font-size:12px;color:var(--mut);font-weight:500}
+.plan .save{font-size:11px;color:var(--neon);height:15px;margin-bottom:8px}
+.plan ul{list-style:none;margin:8px 0 12px}
+.plan li{font-size:12px;padding:4px 0;display:flex;gap:8px;align-items:flex-start;color:#d0d8e4}
+.plan li i{color:var(--neon);margin-top:3px;font-size:10px}
+.plan button.sel{width:100%;padding:12px;border-radius:14px;border:0;font-weight:800;font-size:13px;cursor:pointer;color:#0a1200;background:var(--neon)}
+.plan.cur button.sel{background:var(--card2);color:var(--mut);cursor:default}
+.plan.elite{background:linear-gradient(160deg,#241a00,#16110a 60%)}
+.plan.elite h4 i{color:#ffc933}
+.plan.elite button.sel{background:linear-gradient(135deg,#ffc933,#ff8a00)}
+.toast{position:absolute;left:50%;top:48px;transform:translate(-50%,-80px);background:#0f1d12;border:1px solid var(--neon);color:var(--txt);padding:10px 16px;border-radius:16px;font-size:12px;z-index:100;transition:.4s;display:flex;gap:8px;align-items:center;max-width:90%;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+.toast.show{transform:translate(-50%,0)}
+.toast i{color:var(--neon)}
+.pay-row{display:flex;justify-content:space-between;font-size:13px;padding:9px 0;border-bottom:1px solid var(--line)}
+.pay-row:last-of-type{border:0}
+.confirm-btn{width:100%;margin-top:14px;padding:14px;border-radius:14px;border:0;background:linear-gradient(135deg,var(--neon2),#ff3d00);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+.cancel-btn{width:100%;margin-top:8px;padding:11px;border:0;background:none;color:var(--mut);cursor:pointer;font-size:12px}
+.footer-note{text-align:center;font-size:10px;color:#4b586a;margin-top:18px}
+</style>
 </head>
 <body>
-<div id="root">
-  <div class="shell" id="app">
-    <!-- Status bar -->
-    <div class="status-bar" id="statusBar">
-      <span class="status-time" id="clockDisplay">9:41</span>
-      <div class="status-icons">
-        <span>●●●</span>
-        <span>WiFi</span>
-        <span>🔋</span>
+<div class="phone" id="phone">
+  <div class="notch"></div>
+  <div class="status"><span id="clock">9:41</span><span><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-three-quarters"></i></span></div>
+  <div class="topbar">
+    <h1>PRIME<b>FITNESS</b><small>by Alpha Prime Inc.</small></h1>
+    <button class="pill-btn" onclick="openPlans()"><i class="fa-solid fa-crown"></i><span id="planChip">Básico</span></button>
+  </div>
+
+  <div class="views">
+
+    <!-- 1. INICIO -->
+    <section class="view active" id="v0">
+      <div class="hello"><h3>¡Buenos días, Carlos! 👋</h3><p>Jueves, 8 de octubre · Racha de <b style="color:var(--neon2)">🔥 12 días</b></p></div>
+
+      <div class="card rings-wrap">
+        <div class="rings">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle class="bg" cx="75" cy="75" r="64" stroke-width="13"/>
+            <circle id="rCal" cx="75" cy="75" r="64" stroke-width="13" stroke="#ff2d55" stroke-dasharray="402" stroke-dashoffset="402"/>
+            <circle class="bg" cx="75" cy="75" r="47" stroke-width="13"/>
+            <circle id="rEx" cx="75" cy="75" r="47" stroke-width="13" stroke="#b6ff00" stroke-dasharray="295.3" stroke-dashoffset="295.3"/>
+            <circle class="bg" cx="75" cy="75" r="30" stroke-width="13"/>
+            <circle id="rMov" cx="75" cy="75" r="30" stroke-width="13" stroke="#00e0ff" stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
+          </svg>
+        </div>
+        <div class="ring-legend">
+          <div><i style="background:#ff2d55"></i>Calorías<b id="tCal">0/600 kcal</b></div>
+          <div><i style="background:#b6ff00"></i>Ejercicio<b id="tEx">0/45 min</b></div>
+          <div><i style="background:#00e0ff"></i>Movimiento<b id="tMov">0/10,000 pasos</b></div>
+        </div>
+      </div>
+
+      <h2 class="sec">Biometría en Vivo <a onclick="toast('Dispositivos sincronizados','fa-link')">Dispositivos</a></h2>
+      <div class="card">
+        <div class="bio-head">
+          <div class="devices">
+            <span class="dev"><i class="fa-solid fa-headphones"></i>AirPods Pro 3</span>
+            <span class="dev"><i class="fa-solid fa-clock"></i>Smartwatch</span>
+          </div>
+          <span class="live">EN VIVO</span>
+        </div>
+        <div class="bio">
+          <div class="bpm">
+            <i class="fa-solid fa-heart heart"></i>
+            <div><div class="num" id="bpmHome">120 <small>lpm</small></div><small style="color:var(--mut);font-size:10px" id="bpmZoneTxt">Zona Cardio</small></div>
+            <canvas id="ecg" width="160" height="44"></canvas>
+          </div>
+          <div class="mini"><i class="fa-solid fa-droplet"></i>SpO₂<b>98%</b></div>
+          <div class="mini"><i class="fa-solid fa-bed"></i>Sueño anoche<b>7h 42m</b></div>
+          <div class="mini"><i class="fa-solid fa-wave-square"></i>HRV<b>64 ms</b></div>
+          <div class="mini"><i class="fa-solid fa-temperature-half"></i>Temp. piel<b>36.4°C</b></div>
+        </div>
+      </div>
+
+      <h2 class="sec">Retos Activos <a onclick="openPlans()">Ver todos</a></h2>
+      <div class="card challenge">
+        <div class="ic" style="background:rgba(255,45,85,.15);color:#ff2d55"><i class="fa-solid fa-fire"></i></div>
+        <div class="info"><b>Quema 600 calorías hoy</b><small id="ch1t">0 / 600 kcal</small><div class="bar"><div id="ch1b" style="width:0;background:#ff2d55"></div></div></div>
+        <span class="reward">+$5</span>
+      </div>
+      <div class="card challenge">
+        <div class="ic" style="background:rgba(0,224,255,.15);color:var(--cyan)"><i class="fa-solid fa-person-walking"></i></div>
+        <div class="info"><b>10,000 pasos · 5 días seguidos</b><small>Día 3 de 5</small><div class="bar"><div style="width:60%;background:var(--cyan)"></div></div></div>
+        <span class="reward">+$10</span>
+      </div>
+      <div class="card challenge">
+        <div class="ic" style="background:rgba(255,106,0,.15);color:var(--neon2)"><i class="fa-solid fa-road"></i></div>
+        <div class="info"><b>Corre 20 km esta semana</b><small>13.4 / 20 km</small><div class="bar"><div style="width:67%;background:var(--neon2)"></div></div></div>
+        <span class="reward">+$8</span>
+      </div>
+      <p class="footer-note">Prime Fitness · Simulación de plan de negocios · Alpha Prime Inc.</p>
+    </section>
+
+    <!-- 2. ENTRENAMIENTO -->
+    <section class="view" id="v1">
+      <div class="map">
+        <svg viewBox="0 0 360 230" preserveAspectRatio="xMidYMid slice">
+          <defs><linearGradient id="rg" x1="0" x2="1"><stop offset="0" stop-color="#b6ff00"/><stop offset="1" stop-color="#00e0ff"/></linearGradient></defs>
+          <rect width="360" height="230" fill="#0b1118"/>
+          <g stroke="#17212d" stroke-width="10" fill="none" stroke-linecap="round">
+            <path d="M-10 60 L370 40"/><path d="M-10 150 L370 170"/><path d="M80 -10 L100 240"/><path d="M250 -10 L230 240"/><path d="M-10 210 L370 120"/>
+          </g>
+          <g stroke="#111a24" stroke-width="3" fill="none"><path d="M0 100 L360 100"/><path d="M170 0 L170 230"/><path d="M0 20 L360 200"/></g>
+          <path d="M0 175 Q60 200 120 190 T250 215 L360 205 L360 230 L0 230Z" fill="#0a2230" opacity=".7"/>
+          <rect x="120" y="70" width="70" height="55" rx="8" fill="#0f2417" opacity=".8"/>
+          <path id="route" d="M50 190 C60 140 90 120 130 125 S190 70 230 85 S300 130 290 170 S200 190 160 180 S80 205 50 190" fill="none" stroke="#243040" stroke-width="7" stroke-linecap="round"/>
+          <path id="routeDone" d="M50 190 C60 140 90 120 130 125 S190 70 230 85 S300 130 290 170 S200 190 160 180 S80 205 50 190" fill="none" stroke="url(#rg)" stroke-width="7" stroke-linecap="round" stroke-dasharray="1000" stroke-dashoffset="1000"/>
+          <circle id="runner" r="9" fill="#b6ff00" stroke="#fff" stroke-width="3"><animate attributeName="r" values="8;11;8" dur="1.2s" repeatCount="indefinite"/></circle>
+        </svg>
+        <div class="map-tag"><i class="fa-solid fa-location-dot"></i> Parque del Tercer Milenio · San Juan, PR</div>
+        <div class="map-hud">
+          <div><b id="rDist">0.00</b>km</div>
+          <div><b id="rTime">00:00</b>tiempo</div>
+          <div><b id="rPace">--:--</b>min/km</div>
+          <div><b id="rBpm">72</b>lpm</div>
+        </div>
+      </div>
+      <button class="run-btn" id="runBtn" onclick="toggleRun()"><i class="fa-solid fa-play"></i> Iniciar carrera</button>
+
+      <h2 class="sec">Zonas Cardíacas <a style="color:var(--mut)" id="zoneHint">Reposo</a></h2>
+      <div class="card" style="padding:10px">
+        <div class="zone" id="z0" style="color:#4da3ff"><span class="dot"></span><b>Calentamiento</b><small>94–113 lpm · 50–60%</small></div>
+        <div class="zone" id="z1" style="color:#b6ff00"><span class="dot"></span><b>Quema de Grasa</b><small>114–132 lpm · 60–70%</small></div>
+        <div class="zone" id="z2" style="color:#ff9d00"><span class="dot"></span><b>Cardio</b><small>133–151 lpm · 70–80%</small></div>
+        <div class="zone" id="z3" style="color:#ff2d55"><span class="dot"></span><b>Máximo</b><small>152+ lpm · 80–100%</small></div>
+        <div class="burn-note" style="margin:8px 4px 2px;color:var(--cyan);background:rgba(0,224,255,.08)"><i class="fa-solid fa-watch-fitness"></i><span id="zoneMsg">Ajuste automático con AirPods Pro 3 y tu smartwatch.</span></div>
+      </div>
+
+      <h2 class="sec">Rutinas On-Demand <a>Ver más</a></h2>
+      <div class="carousel">
+        <div class="routine" style="background:linear-gradient(145deg,#b6ff00,#3d7a00);color:#0a1200" onclick="toast('Reproduciendo: HIIT Inferno 20 min','fa-play')"><span class="play"><i class="fa-solid fa-play" style="color:#fff"></i></span><i class="bgi fa-solid fa-bolt"></i><b>HIIT Inferno</b><small>20 min · Alta intensidad · 280 kcal</small></div>
+        <div class="routine" style="background:linear-gradient(145deg,#ff6a00,#8a1d00)" onclick="toast('Reproduciendo: Fuerza Total','fa-play')"><span class="play"><i class="fa-solid fa-play"></i></span><i class="bgi fa-solid fa-dumbbell"></i><b>Fuerza Total</b><small>45 min · Pesas · Coach Rafa</small></div>
+        <div class="routine" style="background:linear-gradient(145deg,#00e0ff,#00507a);color:#00131a" onclick="toast('Reproduciendo: Yoga Flow','fa-play')"><span class="play"><i class="fa-solid fa-play" style="color:#fff"></i></span><i class="bgi fa-solid fa-spa"></i><b>Yoga Flow</b><small>30 min · Movilidad · Principiante</small></div>
+        <div class="routine" style="background:linear-gradient(145deg,#ff2d87,#6b0f3a)" onclick="toast('Reproduciendo: Abs de Acero','fa-play')"><span class="play"><i class="fa-solid fa-play"></i></span><i class="bgi fa-solid fa-child-reaching"></i><b>Abs de Acero</b><small>15 min · Core · Sin equipo</small></div>
+        <div class="routine" style="background:linear-gradient(145deg,#8a5cff,#2a1470)" onclick="toast('Reproduciendo: 5K en 8 semanas','fa-play')"><span class="play"><i class="fa-solid fa-play"></i></span><i class="bgi fa-solid fa-person-running"></i><b>Plan 5K</b><small>8 semanas · Running · Guiado por IA</small></div>
+      </div>
+    </section>
+
+    <!-- 3. NUTRICIÓN -->
+    <section class="view" id="v2">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
+          <b style="font-size:14px">Macros de hoy</b><span style="font-size:11px;color:var(--mut)"><span id="kcalEaten">1,240</span> / <span id="kcalGoal">2,100</span> kcal</span>
+        </div>
+        <div class="macro-row"><div class="l"><b>Proteínas</b><span id="mpT">92 / 140 g</span></div><div class="bar"><div id="mpB" style="background:#ff2d87"></div></div></div>
+        <div class="macro-row"><div class="l"><b>Carbohidratos</b><span id="mcT">130 / 230 g</span></div><div class="bar"><div id="mcB" style="background:#ffc933"></div></div></div>
+        <div class="macro-row"><div class="l"><b>Grasas</b><span id="mgT">38 / 65 g</span></div><div class="bar"><div id="mgB" style="background:#00e0ff"></div></div></div>
+        <div class="burn-note"><i class="fa-solid fa-fire-flame-curved"></i><span id="burnNote">Sal a correr: tus macros se ajustan automáticamente según las calorías que quemes.</span></div>
+      </div>
+
+      <div class="card">
+        <div class="tokens">
+          <div class="coin"><i class="fa-solid fa-bolt"></i></div>
+          <div class="t"><b id="tokTitle">Tokens IA</b><small id="tokSub">Consultas diarias disponibles</small>
+            <div class="bar"><div id="tokBar" style="background:linear-gradient(90deg,#ff9d00,#ffe27a);width:100%"></div></div></div>
+          <b id="tokNum" style="font-size:22px;color:#ffc933">3</b>
+        </div>
+        <button class="recharge" id="rechargeBtn" onclick="openPay()"><i class="fa-solid fa-bolt"></i> Recargar Tokens IA - $0.75</button>
+      </div>
+
+      <h2 class="sec" style="margin-top:6px">Coach IA <span style="font-size:10px;color:var(--neon);font-weight:600"><i class="fa-solid fa-circle" style="font-size:6px"></i> en línea</span></h2>
+      <div class="card chat">
+        <div class="msgs" id="msgs">
+          <div class="msg bot">¡Hola Carlos! 💪 Soy tu Coach IA. Veo que hoy llevas 1,240 kcal y 92 g de proteína. ¿Te armo una cena para cerrar el día?</div>
+        </div>
+        <div class="quick">
+          <button onclick="ask('¿Qué ceno hoy?')">🍽️ ¿Qué ceno hoy?</button>
+          <button onclick="ask('Plan para correr 5K')">🏃 Plan 5K</button>
+          <button onclick="ask('¿Cuánta proteína necesito?')">🥩 Proteína</button>
+          <button onclick="ask('Snack pre-entreno')">⚡ Pre-entreno</button>
+        </div>
+        <div class="chat-in"><input id="chatIn" placeholder="Pregúntale a tu Coach IA…" onkeydown="if(event.key==='Enter')ask()"><button onclick="ask()"><i class="fa-solid fa-paper-plane"></i></button></div>
+      </div>
+
+      <h2 class="sec">Comidas de hoy</h2>
+      <div class="card" style="padding:6px 14px">
+        <div class="tx"><div class="ti">🥣</div><div><b>Avena con guineo y proteína</b><small>Desayuno · 8:10 AM</small></div><span>420 kcal</span></div>
+        <div class="tx"><div class="ti">🍗</div><div><b>Pollo, arroz y habichuelas</b><small>Almuerzo · 12:30 PM</small></div><span>640 kcal</span></div>
+        <div class="tx"><div class="ti">🥤</div><div><b>Batida Alpha Whey Vainilla</b><small>Snack · 3:45 PM</small></div><span>180 kcal</span></div>
+      </div>
+    </section>
+
+    <!-- 4. COACHING -->
+    <section class="view" id="v3">
+      <div class="hello"><h3>Coaches Verificados</h3><p>Entrenadores certificados, de Puerto Rico y el mundo.</p></div>
+      <div class="filters" id="coachFilters">
+        <button class="on" onclick="filterCoach('all',this)">Todos</button>
+        <button onclick="filterCoach('pr',this)">🇵🇷 Puerto Rico</button>
+        <button onclick="filterCoach('int',this)">🌎 Internacional</button>
+      </div>
+      <div class="info-box"><i class="fa-solid fa-shield-halved"></i><span>Cada coach pasa verificación de identidad y certificación. Prime Fitness retiene una comisión del 20% por contratación; el coach recibe $40 de cada $50.</span></div>
+      <div id="coachList"></div>
+    </section>
+
+    <!-- 5. TIENDA -->
+    <section class="view" id="v4">
+      <div class="wallet">
+        <small><i class="fa-solid fa-wallet"></i> PRIME WALLET</small>
+        <h2 id="walletBal">$25.00</h2>
+        <small>ganados con tus retos · utilizable en gimnasios asociados y Alpha Store</small>
+        <div class="row">
+          <button onclick="toast('Escanea tu código en gimnasios asociados','fa-qrcode')"><i class="fa-solid fa-qrcode"></i><br>Pagar</button>
+          <button onclick="toast('Retiro disponible desde $50','fa-arrow-up')"><i class="fa-solid fa-arrow-up-from-bracket"></i><br>Retirar</button>
+          <button onclick="toast('Gimnasios: Smart Gym, Fitness Pro, CrossFit Isla','fa-dumbbell')"><i class="fa-solid fa-location-dot"></i><br>Gimnasios</button>
+        </div>
+      </div>
+      <div class="card" style="padding:6px 14px">
+        <div class="tx"><div class="ti" style="color:var(--neon)"><i class="fa-solid fa-trophy"></i></div><div><b>Reto: 7 días activos</b><small>Hace 2 días</small></div><b class="p">+$10.00</b></div>
+        <div class="tx"><div class="ti" style="color:var(--neon)"><i class="fa-solid fa-fire"></i></div><div><b>Reto: 600 kcal</b><small>Hace 4 días</small></div><b class="p">+$5.00</b></div>
+        <div class="tx"><div class="ti" style="color:var(--red)"><i class="fa-solid fa-dumbbell"></i></div><div><b>Pase Smart Gym Plaza</b><small>Hace 1 semana</small></div><b class="m">-$5.00</b></div>
+        <div class="tx"><div class="ti" style="color:var(--neon)"><i class="fa-solid fa-person-running"></i></div><div><b>Reto: Corre 15 km</b><small>Hace 9 días</small></div><b class="p">+$15.00</b></div>
+      </div>
+
+      <h2 class="sec">Alpha Store <span class="cart-badge" id="cartBadge"><i class="fa-solid fa-bag-shopping"></i> 0</span></h2>
+      <div class="info-box" id="shipNote"><i class="fa-solid fa-truck-fast"></i><span>Envío $4.99. Gratis con <b>Prime Elite</b>.</span></div>
+      <div class="grid2" id="prodList"></div>
+    </section>
+
+  </div>
+
+  <nav class="nav" id="nav">
+    <button class="active" onclick="go(0)"><i class="fa-solid fa-house"></i>Inicio</button>
+    <button onclick="go(1)"><i class="fa-solid fa-person-running"></i>Entrenar</button>
+    <button onclick="go(2)"><i class="fa-solid fa-apple-whole"></i>Nutrición</button>
+    <button onclick="go(3)"><i class="fa-solid fa-user-check"></i>Coaching</button>
+    <button onclick="go(4)"><i class="fa-solid fa-bag-shopping"></i>Tienda</button>
+  </nav>
+
+  <!-- MODAL PLANES -->
+  <div class="overlay" id="plansOv" onclick="if(event.target===this)closePlans()">
+    <div class="sheet" style="position:relative">
+      <div class="grab"></div>
+      <button class="close" onclick="closePlans()"><i class="fa-solid fa-xmark"></i></button>
+      <h3>Elige tu plan Prime</h3>
+      <p class="sub">Desbloquea todo tu potencial. Cancela cuando quieras.</p>
+      <div class="toggle" id="billToggle">
+        <button class="on" onclick="setBilling('m')">Mensual</button>
+        <button onclick="setBilling('a')">Anual <em>Ahorra 20%</em></button>
+      </div>
+
+      <div class="plan" id="plan-basic">
+        <h4><i class="fa-regular fa-circle-user"></i> Prime Básico</h4>
+        <div class="price">Gratis</div><div class="save"></div>
+        <ul><li><i class="fa-solid fa-check"></i>Tracking manual</li><li><i class="fa-solid fa-check"></i>Acceso básico a la tienda</li><li><i class="fa-solid fa-check"></i>3 tokens diarios de IA</li></ul>
+        <button class="sel" onclick="choosePlan('basic')">Elegir Básico</button>
+      </div>
+
+      <div class="plan" id="plan-plus">
+        <span class="badge" style="background:var(--neon);color:#0a1200">MÁS POPULAR</span>
+        <h4><i class="fa-solid fa-bolt" style="color:var(--neon)"></i> Prime+</h4>
+        <div class="price"><span id="pricePlus">$14.99</span> <small id="perPlus">/mes</small></div><div class="save" id="savePlus"></div>
+        <ul><li><i class="fa-solid fa-check"></i>Sincronización con wearables</li><li><i class="fa-solid fa-check"></i>Métricas avanzadas de running</li><li><i class="fa-solid fa-check"></i>30 tokens diarios de IA</li><li><i class="fa-solid fa-check"></i>Retos con premios en efectivo</li></ul>
+        <button class="sel" onclick="choosePlan('plus')">Elegir Prime+</button>
+      </div>
+
+      <div class="plan elite" id="plan-elite">
+        <span class="badge" style="background:linear-gradient(135deg,#ffc933,#ff8a00);color:#2a1500">ELITE</span>
+        <h4><i class="fa-solid fa-crown"></i> Prime Elite</h4>
+        <div class="price"><span id="priceElite">$29.99</span> <small id="perElite">/mes</small></div><div class="save" id="saveElite"></div>
+        <ul><li><i class="fa-solid fa-check"></i>Todo lo de Prime+</li><li><i class="fa-solid fa-check"></i>IA ilimitada (sin límite de tokens)</li><li><i class="fa-solid fa-check"></i>Envío gratis en Alpha Store</li><li><i class="fa-solid fa-check"></i>1 consulta mensual gratis con coach humano</li><li><i class="fa-solid fa-check"></i>Pases VIP para gimnasios asociados</li></ul>
+        <button class="sel" onclick="choosePlan('elite')">Elegir Elite</button>
       </div>
     </div>
-
-    <!-- Screens container -->
-    <div class="screen" id="screenContainer"></div>
-
-    <!-- Bottom nav (hidden on onboarding & exam) -->
-    <nav class="bottom-nav" id="bottomNav" style="display:none">
-      <button class="nav-btn" data-screen="dashboard" onclick="navigate('dashboard')">
-        <span class="nav-icon">⊞</span>
-        <span class="nav-label">Inicio</span>
-      </button>
-      <button class="nav-btn" data-screen="live" onclick="navigate('live')">
-        <span class="nav-icon">◉</span>
-        <span class="nav-label">En Vivo</span>
-      </button>
-      <button class="nav-btn" data-screen="notes" onclick="navigate('notes')">
-        <span class="nav-icon">✦</span>
-        <span class="nav-label">Apuntes</span>
-      </button>
-      <button class="nav-btn" data-screen="tasks" onclick="navigate('tasks')">
-        <span class="nav-icon">◈</span>
-        <span class="nav-label">Tareas</span>
-      </button>
-    </nav>
   </div>
+
+  <!-- MODAL PAGO TOKENS -->
+  <div class="overlay" id="payOv" onclick="if(event.target===this)closePay()">
+    <div class="sheet">
+      <div class="grab"></div>
+      <h3>Recargar Tokens IA</h3>
+      <p class="sub">Microtransacción segura · Apple Pay / Google Pay</p>
+      <div class="card" style="margin-top:6px">
+        <div class="pay-row"><span>Paquete</span><b>+5 Tokens IA</b></div>
+        <div class="pay-row"><span>Precio</span><b>$0.75</b></div>
+        <div class="pay-row"><span>Método</span><b><i class="fa-brands fa-cc-visa"></i> •••• 4821</b></div>
+      </div>
+      <button class="confirm-btn" onclick="confirmPay()"><i class="fa-solid fa-lock"></i> Pagar $0.75</button>
+      <button class="cancel-btn" onclick="closePay()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastTxt"></span></div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   LENSLEARN — App State & Navigation
-═══════════════════════════════════════════════════════════════ */
-const state = {
-  screen: 'onboarding',
-  userProfile: { name: 'Alejandro', style: 'visual', level: 3 },
-  noteStyle: 'simple',
-  showHint: false,
-  showSolution: false,
-  answerResult: null,
-  examSeconds: 3600,
-  examInterval: null,
-  liveInterval: null,
-  transcriptIndex: 0,
-  styleChoice: 'visual',
-  level: 3,
+/* ---------- ESTADO ---------- */
+const S = {
+  tab:0, plan:'basic', billing:'m',
+  tokens:3, maxTokens:3,
+  kcal:210, ex:12, steps:2840,
+  bpm:120, running:false, runSec:0, runDist:0, runKcal:0,
+  wallet:25, cart:0, eaten:1240
 };
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString('en-US');
 
-// Clock
-function updateClock() {
-  const now = new Date();
-  const h = now.getHours().toString().padStart(2,'0');
-  const m = now.getMinutes().toString().padStart(2,'0');
-  document.getElementById('clockDisplay').textContent = `${h}:${m}`;
-}
-updateClock();
-setInterval(updateClock, 30000);
+/* ---------- RELOJ ---------- */
+function tick(){const d=new Date();$('clock').textContent=d.toLocaleTimeString('es-PR',{hour:'numeric',minute:'2-digit',hour12:false});}
+setInterval(tick,10000);tick();
 
-/* ── Navigate ───────────────────────────────────────────── */
-function navigate(screen) {
-  if (state.liveInterval && screen !== 'live') {
-    clearInterval(state.liveInterval);
-    state.liveInterval = null;
-  }
-  if (state.examInterval && screen !== 'exam') {
-    clearInterval(state.examInterval);
-    state.examInterval = null;
-  }
-
-  state.screen = screen;
-  renderScreen();
-  updateNav();
+/* ---------- NAVEGACIÓN ---------- */
+function go(i){
+  S.tab=i;
+  document.querySelectorAll('.view').forEach((v,k)=>{
+    v.classList.toggle('active',k===i);
+    v.style.transform = k<i ? 'translateX(-24px)' : '';
+  });
+  document.querySelectorAll('#nav button').forEach((b,k)=>b.classList.toggle('active',k===i));
+  if(i===0) updateRings();
 }
 
-function updateNav() {
-  const nav = document.getElementById('bottomNav');
-  const hide = ['onboarding','exam'].includes(state.screen);
-  nav.style.display = hide ? 'none' : 'flex';
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    const active = btn.dataset.screen === state.screen;
-    btn.classList.toggle('active', active);
-    // remove old dot
-    btn.querySelectorAll('.nav-dot').forEach(d => d.remove());
-    if (active) {
-      const dot = document.createElement('span');
-      dot.className = 'nav-dot';
-      btn.appendChild(dot);
-    }
+/* ---------- TOAST ---------- */
+let toastT;
+function toast(msg,icon='fa-circle-check'){
+  $('toastTxt').textContent=msg;
+  $('toast').querySelector('i').className='fa-solid '+icon;
+  $('toast').classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.remove('show'),2600);
+}
+
+/* ---------- ANILLOS ---------- */
+function updateRings(){
+  const set=(id,circ,val,goal)=>{$(id).style.strokeDashoffset=circ*(1-Math.min(val/goal,1));};
+  set('rCal',402,S.kcal,600);set('rEx',295.3,S.ex,45);set('rMov',188.5,S.steps,10000);
+  $('tCal').textContent=`${Math.round(S.kcal)}/600 kcal`;
+  $('tEx').textContent=`${Math.round(S.ex)}/45 min`;
+  $('tMov').textContent=`${fmt(Math.round(S.steps))}/10,000 pasos`;
+  const p=Math.min(S.kcal/600*100,100);
+  $('ch1b').style.width=p+'%';
+  $('ch1t').textContent=p>=100?'¡Reto completado! 🎉':`${Math.round(S.kcal)} / 600 kcal`;
+}
+setTimeout(updateRings,300);
+
+/* ---------- BIOMETRÍA / ZONAS ---------- */
+const ecgC=$('ecg'),ctx=ecgC.getContext('2d');let ecgX=0,ecgData=[];
+function zoneOf(b){return b<114?0:b<133?1:b<152?2:3;}
+const zoneNames=['Calentamiento','Quema de Grasa','Cardio','Máximo'];
+const zoneMsgs=['Sigue subiendo el ritmo poco a poco.','Zona ideal para quemar grasa. ¡Mantén el paso!','Zona cardio: mejorando tu resistencia.','¡Esfuerzo máximo! Recupera pronto para evitar fatiga.'];
+function paintZones(){
+  const z=S.bpm<94?-1:zoneOf(S.bpm);
+  for(let i=0;i<4;i++)$('z'+i).classList.toggle('on',i===z);
+  $('zoneHint').textContent=z<0?'Reposo':zoneNames[z];
+  $('zoneMsg').textContent=z<0?'Ajuste automático con AirPods Pro 3 y tu smartwatch.':zoneMsgs[z];
+  $('bpmZoneTxt').textContent=z<0?'Reposo':'Zona '+zoneNames[z];
+}
+function drawEcg(){
+  ctx.clearRect(0,0,160,44);
+  ctx.strokeStyle='#ff4757';ctx.lineWidth=2;ctx.shadowColor='#ff4757';ctx.shadowBlur=6;ctx.beginPath();
+  const speed=S.bpm/60;
+  ecgX=(ecgX+1.5)%160;
+  const y=(x)=>{const p=((x/160)*speed*2)%1;
+    if(p<.1)return 22;if(p<.15)return 22-6;if(p<.2)return 22+3;if(p<.25)return 4;if(p<.3)return 40;if(p<.35)return 22;
+    if(p<.5)return 22-4*Math.sin((p-.35)/.15*Math.PI);return 22;};
+  for(let x=0;x<160;x++){const yy=y(x+ecgX);x?ctx.lineTo(x,yy):ctx.moveTo(x,yy);}
+  ctx.stroke();requestAnimationFrame(drawEcg);
+}
+drawEcg();
+
+setInterval(()=>{
+  let target = S.running ? 150+Math.sin(S.runSec/12)*22 : 120;
+  S.bpm += (target-S.bpm)*0.25 + (Math.random()*4-2);
+  S.bpm = Math.max(60,Math.min(190,S.bpm));
+  const b=Math.round(S.bpm);
+  $('bpmHome').innerHTML=`${b} <small>lpm</small>`;
+  $('rBpm').textContent=b;
+  paintZones();
+},1000);
+
+/* ---------- CARRERA ---------- */
+const route=$('route');const routeLen=route.getTotalLength();
+const done=$('routeDone');done.style.strokeDasharray=routeLen;done.style.strokeDashoffset=routeLen;
+function placeRunner(frac){const p=route.getPointAtLength(routeLen*frac);$('runner').setAttribute('cx',p.x);$('runner').setAttribute('cy',p.y);done.style.strokeDashoffset=routeLen*(1-frac);}
+placeRunner(0);
+let runTimer;
+function toggleRun(){
+  S.running=!S.running;
+  const btn=$('runBtn');
+  if(S.running){
+    btn.className='run-btn stop';btn.innerHTML='<i class="fa-solid fa-stop"></i> Finalizar carrera';
+    toast('¡Carrera iniciada! GPS activo','fa-location-crosshairs');
+    runTimer=setInterval(()=>{
+      S.runSec++;S.runDist+=0.0031+Math.random()*0.0006;
+      const k=0.17; S.runKcal+=k;S.kcal+=k;S.ex+=1/60;S.steps+=2.8;
+      const m=String(Math.floor(S.runSec/60)).padStart(2,'0'),s=String(S.runSec%60).padStart(2,'0');
+      $('rTime').textContent=`${m}:${s}`;$('rDist').textContent=S.runDist.toFixed(2);
+      const pace=S.runSec/60/S.runDist;
+      if(S.runDist>0.02)$('rPace').textContent=`${Math.floor(pace)}:${String(Math.round((pace%1)*60)).padStart(2,'0')}`;
+      placeRunner((S.runDist/1.6)%1);
+      updateRings();updateMacros();
+    },1000);
+  }else{
+    clearInterval(runTimer);
+    btn.className='run-btn';btn.innerHTML='<i class="fa-solid fa-play"></i> Iniciar carrera';
+    toast(`Carrera guardada: ${S.runDist.toFixed(2)} km · ${Math.round(S.runKcal)} kcal`,'fa-flag-checkered');
+    if(S.kcal>=600 && !S.paid){S.paid=true;S.wallet+=5;$('walletBal').textContent='$'+S.wallet.toFixed(2);setTimeout(()=>toast('¡Reto cumplido! +$5.00 en tu Prime Wallet','fa-coins'),2800);}
+  }
+}
+
+/* ---------- MACROS ---------- */
+function updateMacros(){
+  const extra=S.runKcal;
+  const goal=2100+extra;
+  const p=140+extra*0.06, c=230+extra*0.14, g=65+extra*0.012;
+  const set=(k,cur,tot)=>{$('m'+k+'T').textContent=`${Math.round(cur)} / ${Math.round(tot)} g`;$('m'+k+'B').style.width=Math.min(cur/tot*100,100)+'%';};
+  set('p',92,p);set('c',130,c);set('g',38,g);
+  $('kcalGoal').textContent=fmt(Math.round(goal));
+  if(extra>1)$('burnNote').innerHTML=`<b>+${Math.round(extra)} kcal quemadas</b> · meta ajustada: +${Math.round(extra*0.06)} g proteína, +${Math.round(extra*0.14)} g carbos`;
+}
+updateMacros();
+
+/* ---------- TOKENS Y CHAT ---------- */
+const replies=[
+ [/cen|comida|comer|almuerzo/i,'Te recomiendo salmón a la plancha (180 g), quinoa y vegetales salteados: ~520 kcal y 42 g de proteína. 🐟 Con eso cierras tu meta de proteína de hoy.'],
+ [/5k|correr|running|carrera/i,'Plan 5K en 8 semanas: 3 salidas por semana alternando trote/caminata. Semana 1: 1 min trotando + 2 min caminando ×8. Tu smartwatch ajustará el ritmo por zona cardíaca. 🏃'],
+ [/prote/i,'Para tu peso y nivel de actividad apunto a ~1.8 g/kg: unos 140 g al día. Hoy llevas 92 g, te faltan 48 g. 🥩'],
+ [/pre|snack|antes/i,'30–45 min antes de entrenar: guineo + 1 cda de mantequilla de maní, o una Pre-Workout Alpha Voltage con agua. ⚡'],
+ [/hola|buen/i,'¡Hola! Cuéntame tu objetivo: ¿bajar grasa, ganar músculo o mejorar resistencia?'],
+ [/.*/,'Buena pregunta. Con tus datos de hoy (calorías, sueño de 7h 42m y HRV de 64 ms) estás en buen estado para entrenar fuerte. Te sugiero una rutina de 40 min y 25 g de proteína después. 💪']
+];
+function paintTokens(){
+  const el=$('tokNum'),unl=S.plan==='elite';
+  el.textContent=unl?'∞':S.tokens;
+  $('tokBar').style.width=unl?'100%':Math.min(S.tokens/S.maxTokens*100,100)+'%';
+  $('tokSub').textContent=unl?'IA ilimitada incluida en Prime Elite':(S.tokens>0?'Consultas diarias disponibles':'Sin tokens · recarga para seguir chateando');
+  $('rechargeBtn').style.display=unl?'none':'flex';
+  $('rechargeBtn').classList.toggle('pulse',!unl&&S.tokens===0);
+}
+function addMsg(t,who){const d=document.createElement('div');d.className='msg '+who;d.textContent=t;$('msgs').appendChild(d);$('msgs').scrollTop=$('msgs').scrollHeight;return d;}
+function ask(text){
+  const inp=$('chatIn');const q=(text||inp.value).trim();if(!q)return;inp.value='';
+  if(S.plan!=='elite'&&S.tokens<=0){
+    addMsg(q,'me');addMsg('Te quedaste sin tokens IA por hoy. 🔋 Recarga por $0.75 o pásate a Prime+ / Elite para más consultas.','bot');
+    toast('Sin tokens IA. Recarga para continuar','fa-bolt');return;
+  }
+  addMsg(q,'me');
+  if(S.plan!=='elite'){S.tokens--;paintTokens();}
+  const typing=addMsg('Escribiendo…','bot');typing.style.opacity='.6';
+  setTimeout(()=>{typing.style.opacity=1;typing.textContent=replies.find(r=>r[0].test(q))[1];$('msgs').scrollTop=$('msgs').scrollHeight;},900);
+}
+function openPay(){$('payOv').classList.add('show');}
+function closePay(){$('payOv').classList.remove('show');}
+function confirmPay(){
+  S.tokens+=5;closePay();paintTokens();
+  toast('¡Pago de $0.75 exitoso! +5 Tokens IA','fa-bolt');
+  addMsg('¡Tokens recargados! ⚡ Seguimos. ¿Qué quieres saber?','bot');
+}
+
+/* ---------- COACHES ---------- */
+const coaches=[
+ {n:'Rafael "Rafa" Colón',e:'Fuerza e hipertrofia',r:4.9,rv:212,loc:'pr',lugar:'🇵🇷 San Juan, Puerto Rico',c:'#b6ff00',i:'RC'},
+ {n:'Gabriela Rivera',e:'Running y maratón',r:4.8,rv:164,loc:'pr',lugar:'🇵🇷 Ponce, Puerto Rico',c:'#ff9d00',i:'GR'},
+ {n:'Luis "Papo" Santiago',e:'Pérdida de grasa y nutrición',r:4.9,rv:301,loc:'pr',lugar:'🇵🇷 Bayamón, Puerto Rico',c:'#00e0ff',i:'LS'},
+ {n:'Camila Herrera',e:'Yoga y movilidad',r:5.0,rv:98,loc:'int',lugar:'🇨🇴 Medellín, Colombia',c:'#ff2d87',i:'CH'},
+ {n:'Marcus Reed',e:'CrossFit y alto rendimiento',r:4.7,rv:187,loc:'int',lugar:'🇺🇸 Miami, EE. UU.',c:'#8a5cff',i:'MR'},
+ {n:'Sofía Navarro',e:'Entrenamiento funcional en casa',r:4.8,rv:143,loc:'int',lugar:'🇪🇸 Valencia, España',c:'#ffc933',i:'SN'}
+];
+let hired=new Set();
+function renderCoaches(f='all'){
+  $('coachList').innerHTML=coaches.map((c,k)=>({c,k})).filter(o=>f==='all'||o.c.loc===f).map(({c,k})=>`
+  <div class="card">
+    <div class="coach" style="margin:0">
+      <div class="avatar" style="background:linear-gradient(135deg,${c.c},#0006)">${c.i}<span class="ver"><i class="fa-solid fa-check"></i></span></div>
+      <div class="info"><b>${c.n}</b><div class="esp">${c.e}</div>
+        <div class="rate"><i class="fa-solid fa-star"></i> ${c.r.toFixed(1)} <span>(${c.rv} reseñas)</span></div>
+        <span class="flag">${c.lugar}</span></div>
+    </div>
+    <button class="hire ${hired.has(k)?'done':''}" onclick="hire(${k},this)">${hired.has(k)?'<i class="fa-solid fa-check"></i> Contratado':'Contratar por $50/mes'}</button>
+  </div>`).join('');
+}
+function filterCoach(f,btn){document.querySelectorAll('#coachFilters button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderCoaches(f);}
+function hire(k,btn){
+  if(hired.has(k)){toast('Ya trabajas con este coach','fa-circle-info');return;}
+  hired.add(k);btn.classList.add('done');btn.innerHTML='<i class="fa-solid fa-check"></i> Contratado';
+  toast(`Contrataste a ${coaches[k].n.split(' ')[0]} · $40 al coach, $10 comisión Prime`,'fa-handshake');
+}
+renderCoaches();
+
+/* ---------- TIENDA ---------- */
+const prods=[
+ {n:'Alpha Voltage Pre-Workout',d:'Energía y foco · 30 porciones',p:34.99,o:44.99,e:'⚡',bg:'linear-gradient(135deg,#3a1a00,#ff6a00)',t:'MÁS VENDIDO'},
+ {n:'Batida Alpha Whey',d:'25 g proteína · Vainilla',p:29.99,o:0,e:'🥤',bg:'linear-gradient(135deg,#1a2a00,#7dd300)',t:'NUEVO'},
+ {n:'Barras Alpha Crunch ×12',d:'20 g proteína · Choco-coco',p:24.99,o:29.99,e:'🍫',bg:'linear-gradient(135deg,#2a1200,#a0522d)',t:''},
+ {n:'Creatina Alpha Mono',d:'300 g · Sin sabor',p:21.99,o:0,e:'💪',bg:'linear-gradient(135deg,#001a2a,#00a6c7)',t:''},
+ {n:'BCAA Tropical',d:'Recuperación · Mango-piña',p:26.99,o:0,e:'🥭',bg:'linear-gradient(135deg,#2a0a1a,#ff2d87)',t:'-15%'},
+ {n:'Shaker Prime Neon',d:'700 ml · Libre de BPA',p:12.99,o:0,e:'🧴',bg:'linear-gradient(135deg,#0a0a0a,#3d5c00)',t:''}
+];
+$('prodList').innerHTML=prods.map((p,k)=>`
+ <div class="prod"><div class="img" style="background:${p.bg}">${p.t?`<span class="tag">${p.t}</span>`:''}${p.e}</div>
+ <b>${p.n}</b><small>${p.d}</small>
+ <div class="pr"><span>$${p.p.toFixed(2)}${p.o?`<s>$${p.o.toFixed(2)}</s>`:''}</span></div>
+ <button class="buy" onclick="buy(${k})"><i class="fa-solid fa-bolt"></i> Comprar con 1 clic</button></div>`).join('');
+function buy(k){
+  S.cart++;$('cartBadge').innerHTML=`<i class="fa-solid fa-bag-shopping"></i> ${S.cart}`;
+  const ship=S.plan==='elite'?'envío gratis':'+ $4.99 envío';
+  toast(`${prods[k].n} comprado (${ship})`,'fa-bag-shopping');
+}
+
+/* ---------- PLANES ---------- */
+function openPlans(){$('plansOv').classList.add('show');paintPlans();}
+function closePlans(){$('plansOv').classList.remove('show');}
+function setBilling(b){
+  S.billing=b;
+  document.querySelectorAll('#billToggle button').forEach((x,i)=>x.classList.toggle('on',(i===0&&b==='m')||(i===1&&b==='a')));
+  paintPlans();
+}
+function paintPlans(){
+  const a=S.billing==='a';
+  $('pricePlus').textContent=a?'$143.90':'$14.99';$('perPlus').textContent=a?'/año':'/mes';
+  $('savePlus').textContent=a?'≈ $11.99/mes · ahorras $36.00 al año':'';
+  $('priceElite').textContent=a?'$287.90':'$29.99';$('perElite').textContent=a?'/año':'/mes';
+  $('saveElite').textContent=a?'≈ $23.99/mes · ahorras $72.00 al año':'';
+  ['basic','plus','elite'].forEach(p=>{
+    const el=$('plan-'+p);el.classList.toggle('cur',S.plan===p);
+    el.querySelector('.sel').textContent=S.plan===p?'Plan actual':'Elegir '+({basic:'Básico',plus:'Prime+',elite:'Elite'})[p];
   });
 }
-
-/* ── Render dispatcher ──────────────────────────────────── */
-function renderScreen() {
-  const container = document.getElementById('screenContainer');
-  const renders = {
-    onboarding: renderOnboarding,
-    dashboard:  renderDashboard,
-    live:       renderLive,
-    notes:      renderNotes,
-    tasks:      renderTasks,
-    exam:       renderExam,
-  };
-  container.innerHTML = '';
-  const el = document.createElement('div');
-  el.className = 'screen';
-  el.id = `s-${state.screen}`;
-  el.innerHTML = (renders[state.screen] || renderDashboard)();
-  container.appendChild(el);
-  if (state.screen === 'live')  startLiveTranscript();
-  if (state.screen === 'exam')  startExamTimer();
+function choosePlan(p){
+  if(S.plan===p)return;
+  S.plan=p;
+  S.maxTokens=p==='basic'?3:30;S.tokens=S.maxTokens;
+  $('planChip').textContent={basic:'Básico',plus:'Prime+',elite:'Elite'}[p];
+  $('shipNote').innerHTML=p==='elite'?'<i class="fa-solid fa-truck-fast"></i><span>¡Envío <b>gratis</b> en todas tus compras con Prime Elite!</span>':'<i class="fa-solid fa-truck-fast"></i><span>Envío $4.99. Gratis con <b>Prime Elite</b>.</span>';
+  paintPlans();paintTokens();
+  const precio=p==='basic'?'':S.billing==='a'?(p==='plus'?'$143.90/año':'$287.90/año'):(p==='plus'?'$14.99/mes':'$29.99/mes');
+  toast(`¡Bienvenido a ${{basic:'Prime Básico',plus:'Prime+',elite:'Prime Elite'}[p]}! ${precio}`,'fa-crown');
+  setTimeout(closePlans,900);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   ONBOARDING
-═══════════════════════════════════════════════════════════════ */
-const styleOptions = [
-  { id:'visual',    icon:'🎨', label:'Visual',     sub:'Mapas y diagramas' },
-  { id:'steps',     icon:'🪜', label:'Paso a paso', sub:'Secuencial y claro' },
-  { id:'summary',   icon:'⚡', label:'Resumen',     sub:'Solo lo esencial' },
-  { id:'examples',  icon:'💡', label:'Ejemplos',    sub:'Aprendo haciendo' },
-];
-
-function renderOnboarding() {
-  return `
-  <div id="s-onboarding">
-    <div class="ob-hero">
-      <div class="ob-logo">
-        <div class="ob-logo-icon">👓</div>
-        <span class="ob-logo-text">Lens<span>Learn</span></span>
-      </div>
-      <div class="ob-tag">AI Study Companion</div>
-      <h1 class="ob-title">Tu clase,<br><span>inteligente</span>.</h1>
-      <p class="ob-sub">Tus gafas capturan la clase. Nuestra IA convierte cada lección en contenido perfecto para <em>ti</em>.</p>
-    </div>
-
-    <div class="ob-card">
-      <div class="ob-section-label">¿Cómo aprendes mejor?</div>
-      <div class="style-grid" id="styleGrid">
-        ${styleOptions.map(s => `
-          <div class="style-opt ${state.styleChoice===s.id?'on':''}"
-               onclick="selectStyle('${s.id}')" id="style-${s.id}">
-            <span class="style-opt-icon">${s.icon}</span>
-            <div class="style-opt-label">${s.label}</div>
-            <div class="style-opt-sub">${s.sub}</div>
-          </div>
-        `).join('')}
-      </div>
-
-      <div style="margin-top:24px">
-        <div class="ob-section-label">Nivel de detalle</div>
-        <input type="range" class="level-slider" min="1" max="5" value="${state.level}"
-               id="levelSlider" oninput="updateLevel(this.value)" />
-        <div class="level-labels">
-          <span class="level-label-text">Básico</span>
-          <span class="level-label-text" id="levelVal" style="color:var(--blue);font-weight:700">Intermedio</span>
-          <span class="level-label-text">Avanzado</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="ob-bottom">
-      <button class="btn-primary" onclick="completeOnboarding()">
-        Comenzar experiencia →
-      </button>
-      <div class="ob-terms">Sin guardar audios. Solo texto procesado. Tu privacidad, protegida.</div>
-    </div>
-  </div>`;
-}
-
-function selectStyle(id) {
-  state.styleChoice = id;
-  document.querySelectorAll('.style-opt').forEach(el => el.classList.remove('on'));
-  document.getElementById(`style-${id}`)?.classList.add('on');
-}
-
-function updateLevel(v) {
-  state.level = parseInt(v);
-  const labels = ['','Básico','Elemental','Intermedio','Avanzado','Experto'];
-  const el = document.getElementById('levelVal');
-  if (el) el.textContent = labels[v];
-  // update slider fill
-  const pct = ((v-1)/4)*100;
-  document.getElementById('levelSlider').style.background =
-    `linear-gradient(to right, var(--blue) ${pct}%, rgba(255,255,255,0.1) ${pct}%)`;
-}
-
-function completeOnboarding() {
-  state.userProfile = { name: 'Alejandro', style: state.styleChoice, level: state.level };
-  navigate('dashboard');
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   DASHBOARD
-═══════════════════════════════════════════════════════════════ */
-function renderDashboard() {
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
-
-  return `
-  <div style="padding-bottom:4px">
-    <div class="dash-header">
-      <div class="dash-greeting">${greeting} 👋</div>
-      <div class="dash-name">${state.userProfile?.name || 'Estudiante'}</div>
-    </div>
-
-    <!-- Current class card -->
-    <div class="class-card" id="classCard">
-      <div class="class-label">Clase en curso · Lunes 9:00 AM</div>
-      <div class="class-name">Cálculo Diferencial</div>
-      <div class="class-meta">Prof. Dr. Ramírez · Aula 204 · 48 min restantes</div>
-      <div class="class-progress">
-        <div class="class-progress-label">
-          <span>Progreso de clase</span>
-          <span>68%</span>
-        </div>
-        <div class="class-progress-bar"><div class="class-progress-fill"></div></div>
-      </div>
-      <div class="class-actions">
-        <button class="class-btn main-btn" onclick="navigate('live')">▶ Ver en vivo</button>
-        <button class="class-btn" onclick="navigate('notes')">Apuntes</button>
-        <button class="class-btn" onclick="navigate('exam')">Examen</button>
-      </div>
-    </div>
-
-    <!-- Summary stats -->
-    <div class="summary-row">
-      <div class="summary-box">
-        <div class="summary-val" style="color:var(--blue)">4</div>
-        <div class="summary-unit">Clases hoy</div>
-      </div>
-      <div class="summary-box">
-        <div class="summary-val" style="color:var(--green)">87%</div>
-        <div class="summary-unit">Comprensión</div>
-      </div>
-      <div class="summary-box">
-        <div class="summary-val" style="color:var(--yellow)">12</div>
-        <div class="summary-unit">Palabras clave</div>
-      </div>
-    </div>
-
-    <!-- Keywords -->
-    <div style="padding:0 20px;margin-bottom:20px">
-      <div class="section-hd">
-        <h3>🔑 Palabras Clave</h3>
-        <span class="see-all" onclick="navigate('notes')">Ver apuntes</span>
-      </div>
-      <div class="kw-row">
-        <div class="kw-chip kw-exam">⚠️ Examen: Límites</div>
-        <div class="kw-chip kw-exam">⚠️ Regla de la cadena</div>
-        <div class="kw-chip">Derivada implícita</div>
-        <div class="kw-chip">L'Hôpital</div>
-        <div class="kw-chip">Infinitesimal</div>
-        <div class="kw-chip">Continuidad</div>
-      </div>
-    </div>
-
-    <!-- Priority study -->
-    <div style="padding:0 20px;margin-bottom:20px">
-      <div class="section-hd">
-        <h3>📊 Prioridad de Estudio</h3>
-      </div>
-      <div class="study-list">
-        <div class="study-item">
-          <div class="study-rank rank-1">1</div>
-          <div class="study-info">
-            <div class="study-name">Regla de la cadena</div>
-            <div class="study-sub">Alta probabilidad en examen · Repasado hace 5 días</div>
-          </div>
-          <span class="badge b-yellow">Urgente</span>
-        </div>
-        <div class="study-item">
-          <div class="study-rank rank-2">2</div>
-          <div class="study-info">
-            <div class="study-name">Límites al infinito</div>
-            <div class="study-sub">Mencionado 3 veces hoy · Tema central</div>
-          </div>
-          <span class="badge b-blue">Hoy</span>
-        </div>
-        <div class="study-item">
-          <div class="study-rank rank-3">3</div>
-          <div class="study-info">
-            <div class="study-name">Derivadas implícitas</div>
-            <div class="study-sub">Tema nuevo · Sin repasar aún</div>
-          </div>
-          <span class="badge b-green">Nuevo</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Today's summary -->
-    <div style="padding:0 20px;margin-bottom:20px">
-      <div class="section-hd"><h3>📝 Resumen del Día</h3></div>
-      <div class="card">
-        <div style="font-size:14px;color:var(--g700);line-height:1.7">
-          Hoy el Prof. Ramírez introdujo <strong>derivadas de funciones compuestas</strong> usando la regla de la cadena. 
-          Se enfatizó la importancia de los <strong>límites laterales</strong> para el próximo examen parcial. 
-          Se resolvieron 3 ejercicios en clase con dificultad creciente.
-        </div>
-        <button class="btn-sec" style="margin-top:14px" onclick="navigate('notes')">
-          Ver apuntes completos →
-        </button>
-      </div>
-    </div>
-  </div>`;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   LIVE CLASS
-═══════════════════════════════════════════════════════════════ */
-const transcriptLines = [
-  "...entonces, si tenemos f(x) = sin(x²), para derivar necesitamos aplicar la ",
-  "<span class='transcript-new'>regla de la cadena. Recuerden: la derivada exterior por la derivada interior.</span>",
-  "<span class='transcript-new'> f'(x) = cos(x²) · 2x. ¿Ven cómo funciona?</span>",
-  "<span class='transcript-new'> Este tipo de problema <em>viene en el examen</em>, así que presten atención.</span>",
-  "<span class='transcript-new'> Ahora veamos un caso más complejo con funciones trigonométricas anidadas...</span>",
-];
-
-let transcriptBuilt = "";
-let transcriptIdx = 0;
-
-function startLiveTranscript() {
-  transcriptBuilt = transcriptLines[0];
-  transcriptIdx = 1;
-  const el = document.getElementById('transcriptText');
-  if (!el) return;
-  el.innerHTML = transcriptBuilt + '<span class="transcript-cursor"></span>';
-  state.liveInterval = setInterval(() => {
-    if (transcriptIdx < transcriptLines.length) {
-      transcriptBuilt += transcriptLines[transcriptIdx];
-      transcriptIdx++;
-      const te = document.getElementById('transcriptText');
-      if (te) te.innerHTML = transcriptBuilt + '<span class="transcript-cursor"></span>';
-    }
-  }, 2200);
-}
-
-let liveTimer = 0;
-function renderLive() {
-  return `
-  <div>
-    <div class="live-header">
-      <div class="live-top">
-        <div class="ob-logo" style="gap:8px;margin-bottom:0">
-          <div style="font-size:18px">👓</div>
-          <span style="font-size:16px;font-weight:700;color:var(--black)">Cálculo Diferencial</span>
-        </div>
-        <div class="live-indicator">
-          <div class="live-dot"></div>
-          <span>EN VIVO</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
-        <span style="font-size:13px;color:var(--g500)">Prof. Dr. Ramírez · Aula 204</span>
-        <span class="badge b-blue" id="liveTimerBadge">⏱ 48:12</span>
-      </div>
-    </div>
-
-    <!-- Board simulation -->
-    <div class="live-board">
-      <span class="board-label">Pizarra capturada por LensLearn</span>
-      <div class="live-board-content">
-        <div style="color:rgba(255,255,255,0.4);font-size:11px;margin-bottom:8px">REGLA DE LA CADENA</div>
-        <div class="board-eq">d/dx[f(g(x))] = f'(g(x)) · g'(x)</div>
-        <div style="margin-top:12px;color:rgba(255,255,255,0.5)">Ejemplo:</div>
-        <div class="board-eq" style="font-size:14px">f(x) = sin(x²)</div>
-        <div style="margin-top:4px">
-          f'(x) = <span class="board-highlight">cos(x²)</span> · <span style="color:var(--green)">2x</span>
-        </div>
-        <div style="margin-top:12px;color:rgba(255,255,255,0.35);font-size:12px">
-          ↑ IA procesó imagen de pizarra hace 8 seg
-        </div>
-      </div>
-    </div>
-
-    <!-- Transcript -->
-    <div class="transcript-box">
-      <div class="transcript-label">
-        <div class="live-dot"></div>
-        Transcripción en tiempo real
-      </div>
-      <div class="transcript-text" id="transcriptText">
-        Cargando transcripción...<span class="transcript-cursor"></span>
-      </div>
-    </div>
-
-    <!-- Important highlight -->
-    <div class="important-highlight">
-      <span class="imp-icon">⚠️</span>
-      <div>
-        <div class="imp-label">IA detectó: viene en el examen</div>
-        <div class="imp-text">"Este tipo de problema <strong>viene en el examen</strong>"
-        — Prof. Ramírez, 09:47 AM</div>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="live-actions">
-      <button class="mark-btn primary" onclick="markImportant()">
-        ⭐ Marcar importante
-      </button>
-      <button class="mark-btn secondary" onclick="navigate('notes')">
-        📝 Apuntes
-      </button>
-    </div>
-    <div style="height:16px"></div>
-    <div style="padding:0 20px">
-      <div class="card" style="padding:14px 16px">
-        <div style="font-size:12px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">
-          Estadísticas de clase
-        </div>
-        <div style="display:flex;gap:16px;justify-content:space-between">
-          <div style="text-align:center">
-            <div style="font-size:22px;font-weight:800;color:var(--blue)">847</div>
-            <div style="font-size:11px;color:var(--g500)">palabras cap.</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:22px;font-weight:800;color:var(--green)">4</div>
-            <div style="font-size:11px;color:var(--g500)">conceptos clave</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:22px;font-weight:800;color:var(--yellow)">3</div>
-            <div style="font-size:11px;color:var(--g500)">alertas IA</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:22px;font-weight:800;color:var(--black)">2</div>
-            <div style="font-size:11px;color:var(--g500)">capturas piz.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div style="height:16px"></div>
-  </div>`;
-}
-
-function markImportant() {
-  const btn = document.querySelector('.mark-btn.primary');
-  if (!btn) return;
-  btn.textContent = '✅ ¡Marcado!';
-  btn.style.background = 'var(--green)';
-  setTimeout(() => {
-    if (btn) { btn.textContent = '⭐ Marcar importante'; btn.style.background = ''; }
-  }, 2000);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SMART NOTES
-═══════════════════════════════════════════════════════════════ */
-function renderNotes() {
-  const noteStyleRender = {
-    simple:   renderNoteSimple,
-    visual:   renderNoteVisual,
-    steps:    renderNoteSteps,
-  };
-
-  return `
-  <div>
-    <div class="notes-header">
-      <div class="notes-title">Apuntes IA</div>
-      <div class="notes-sub">Cálculo Diferencial · 28 mayo 2025</div>
-    </div>
-
-    <!-- Style pills -->
-    <div style="padding:0 20px;margin-bottom:20px">
-      <div class="pill-row">
-        <button class="pill ${state.noteStyle==='simple'?'on':''}" onclick="setNoteStyle('simple')">📄 Simple</button>
-        <button class="pill ${state.noteStyle==='visual'?'on':''}" onclick="setNoteStyle('visual')">🎨 Visual</button>
-        <button class="pill ${state.noteStyle==='steps'?'on':''}" onclick="setNoteStyle('steps')">🪜 Paso a paso</button>
-      </div>
-    </div>
-
-    <!-- Note content -->
-    <div id="noteContent">
-      ${(noteStyleRender[state.noteStyle] || renderNoteSimple)()}
-    </div>
-
-    <!-- Example guided -->
-    <div style="padding:0 20px;margin-bottom:20px">
-      <div class="section-hd"><h3>💡 Ejemplo Guiado</h3></div>
-      <div class="example-box">
-        <div class="example-label">Ejercicio resuelto</div>
-        <div class="example-eq">f(x) = (3x² + 1)⁵</div>
-        <div class="example-step">
-          Identificamos: función exterior = u⁵, función interior = 3x² + 1<br>
-          Aplicamos regla de la cadena:
-        </div>
-        <div class="example-eq" style="font-size:15px;margin:6px 0">
-          f'(x) = 5(3x² + 1)⁴ · 6x
-        </div>
-        <div class="example-result">= 30x(3x² + 1)⁴ ✓</div>
-      </div>
-    </div>
-
-    <!-- Action buttons -->
-    <div style="padding:0 20px;margin-bottom:20px;display:flex;gap:10px">
-      <button class="btn-primary" style="flex:2" onclick="navigate('tasks')">
-        Practicar ejercicios →
-      </button>
-      <button class="btn-sec" style="flex:1" onclick="navigate('exam')">🎓 Examen</button>
-    </div>
-  </div>`;
-}
-
-function setNoteStyle(style) {
-  state.noteStyle = style;
-  const noteStyleRender = {
-    simple:   renderNoteSimple,
-    visual:   renderNoteVisual,
-    steps:    renderNoteSteps,
-  };
-  document.querySelectorAll('.pill').forEach(p => {
-    p.classList.toggle('on', p.textContent.toLowerCase().includes(style) ||
-      (style==='simple'&&p.textContent.includes('Simple')) ||
-      (style==='visual'&&p.textContent.includes('Visual')) ||
-      (style==='steps'&&p.textContent.includes('Paso')));
-  });
-  const content = document.getElementById('noteContent');
-  if (content) {
-    content.style.opacity = '0';
-    content.style.transform = 'translateY(8px)';
-    content.style.transition = 'all 0.2s ease';
-    setTimeout(() => {
-      content.innerHTML = (noteStyleRender[style] || renderNoteSimple)();
-      content.style.opacity = '1';
-      content.style.transform = 'translateY(0)';
-    }, 180);
-  }
-}
-
-function renderNoteSimple() {
-  return `
-  <div class="note-block note-simple">
-    <div class="note-block-title"><span class="icon">📄</span> Resumen Simple</div>
-    <p>La <strong>regla de la cadena</strong> se usa para derivar funciones compuestas, donde una función está "dentro" de otra.</p>
-    <p>Si tienes f(g(x)), la derivada es: <strong>f'(g(x)) · g'(x)</strong> — derivada exterior multiplicada por derivada interior.</p>
-    <p>Es uno de los conceptos más importantes del curso y aparecerá en el examen parcial.</p>
-  </div>`;
-}
-
-function renderNoteVisual() {
-  return `
-  <div class="note-block note-visual">
-    <div class="note-block-title"><span class="icon">🎨</span> Mapa Visual</div>
-    <div class="concept-map">
-      <div class="concept-node cn-main">
-        <span class="cn-text">⊕ Regla de la cadena</span>
-      </div>
-      <div class="concept-node cn-sub">
-        <span class="cn-text">→ Para funciones compuestas f(g(x))</span>
-      </div>
-      <div class="concept-node cn-leaf">
-        <span class="cn-text">• Identificar función exterior</span>
-      </div>
-      <div class="concept-node cn-leaf">
-        <span class="cn-text">• Identificar función interior</span>
-      </div>
-      <div class="concept-node cn-sub">
-        <span class="cn-text">→ Fórmula: f'(g(x)) · g'(x)</span>
-      </div>
-      <div class="concept-node cn-leaf">
-        <span class="cn-text">• Derivar exterior sin cambiar interior</span>
-      </div>
-      <div class="concept-node cn-leaf">
-        <span class="cn-text">• Multiplicar por derivada del interior</span>
-      </div>
-      <div class="concept-node cn-sub" style="background:#FFE5E3">
-        <span class="cn-text" style="color:var(--red)">⚠️ Viene en el examen</span>
-      </div>
-    </div>
-  </div>`;
-}
-
-function renderNoteSteps() {
-  return `
-  <div class="note-block note-steps">
-    <div class="note-block-title"><span class="icon">🪜</span> Paso a Paso</div>
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-content">
-        <div class="step-title">Identifica si es función compuesta</div>
-        <div class="step-desc">¿Hay una función "dentro" de otra? Si sí, aplica regla de la cadena.</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-content">
-        <div class="step-title">Llama u a la función interior</div>
-        <div class="step-desc">Sea u = g(x). Reescribe f como función de u.</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-content">
-        <div class="step-title">Deriva la función exterior</div>
-        <div class="step-desc">Calcula f'(u) sin tocar lo que hay dentro.</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-content">
-        <div class="step-title">Multiplica por g'(x)</div>
-        <div class="step-desc">Resultado final: f'(g(x)) × g'(x). ¡Listo!</div>
-      </div>
-    </div>
-  </div>`;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   TASK MODE
-═══════════════════════════════════════════════════════════════ */
-function renderTasks() {
-  return `
-  <div>
-    <div class="task-header">
-      <div class="task-title-row">
-        <h2 style="font-size:26px;font-weight:800">Modo Tareas</h2>
-        <span class="badge b-blue">Nivel ${state.level}/5</span>
-      </div>
-      <p style="font-size:14px;color:var(--g500);margin-top:4px">Practica lo visto en clase hoy</p>
-    </div>
-
-    <!-- Problem card -->
-    <div class="problem-card">
-      <div class="problem-label">Ejercicio 2 de 5 · Regla de la cadena</div>
-      <div class="problem-text">Encuentra la derivada de la siguiente función compuesta:</div>
-      <div class="problem-eq">f(x) = √(4x³ - 2x)</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:8px">
-        Expresa tu respuesta de forma simplificada.
-      </div>
-      <div class="problem-difficulty">
-        <span class="diff-star">★</span><span class="diff-star">★</span><span class="diff-star">★</span>
-        <span style="font-size:12px;color:rgba(255,255,255,0.4)">★★</span>
-        <span style="font-size:12px;color:rgba(255,255,255,0.4);margin-left:4px">Intermedio</span>
-      </div>
-    </div>
-
-    <!-- Action buttons -->
-    <div class="task-btns">
-      <button class="btn-outline" style="flex:1" onclick="toggleHint()">
-        ${state.showHint ? '🙈 Ocultar pista' : '💡 Ver pista'}
-      </button>
-      <button class="btn-outline" style="flex:1;border-color:var(--green);color:var(--green)"
-              onclick="toggleSolution()">
-        ${state.showSolution ? '🙈 Ocultar' : '✅ Ver solución'}
-      </button>
-    </div>
-
-    ${state.showHint ? `
-    <div class="hint-box">
-      <div class="hint-label">💡 Pista</div>
-      <p style="font-size:14px;color:#6B4E00;line-height:1.6">
-        Recuerda que √u = u^(1/2). Identifica la función interior: <strong>u = 4x³ − 2x</strong>.
-        Ahora aplica la regla de la cadena con la función exterior f(u) = u^(1/2).
-      </p>
-    </div>` : ''}
-
-    ${state.showSolution ? `
-    <div class="solution-box">
-      <div class="solution-label">✅ Solución paso a paso</div>
-      <div class="solution-steps">
-        <div class="sol-step">
-          <div class="sol-num">1</div>
-          <div class="sol-text">Reescribir: <span class="sol-eq">f(x) = (4x³ - 2x)^(1/2)</span></div>
-        </div>
-        <div class="sol-step">
-          <div class="sol-num">2</div>
-          <div class="sol-text">Función exterior: <span class="sol-eq">u^(1/2)</span> → derivada: <span class="sol-eq">(1/2)u^(-1/2)</span></div>
-        </div>
-        <div class="sol-step">
-          <div class="sol-num">3</div>
-          <div class="sol-text">Función interior: <span class="sol-eq">u = 4x³ - 2x</span> → derivada: <span class="sol-eq">12x² - 2</span></div>
-        </div>
-        <div class="sol-step">
-          <div class="sol-num">4</div>
-          <div class="sol-text">Multiplicar: <span class="sol-eq">(1/2)(4x³-2x)^(-1/2) · (12x²-2)</span></div>
-        </div>
-        <div class="sol-step">
-          <div class="sol-num">5</div>
-          <div class="sol-text" style="color:var(--green);font-weight:700">
-            f'(x) = (12x² - 2) / (2√(4x³ - 2x)) ✓
-          </div>
-        </div>
-      </div>
-    </div>` : ''}
-
-    <!-- Answer input -->
-    <div class="input-answer">
-      <input class="answer-input" type="text" placeholder="Escribe tu respuesta..." id="answerInput" />
-      <button class="check-btn" onclick="checkAnswer()">→</button>
-    </div>
-
-    ${state.answerResult === 'correct' ? `
-    <div class="answer-result answer-correct">
-      🎉 ¡Correcto! Excelente trabajo — pasando al siguiente ejercicio...
-    </div>` : ''}
-    ${state.answerResult === 'wrong' ? `
-    <div class="answer-result answer-wrong">
-      ❌ No es correcto. Revisa los pasos o usa la pista.
-    </div>` : ''}
-
-    <!-- Next problem -->
-    <div style="padding:16px 20px 0;display:flex;gap:10px">
-      <button class="btn-sec" style="flex:1" onclick="prevTask()">← Anterior</button>
-      <button class="btn-primary" style="flex:2" onclick="nextTask()">Siguiente →</button>
-    </div>
-
-    <!-- Progress -->
-    <div style="padding:16px 20px 0">
-      <div style="font-size:12px;color:var(--g500);margin-bottom:6px">Progreso del módulo</div>
-      <div class="progress-wrap"><div class="progress-fill" style="width:40%"></div></div>
-      <div style="font-size:12px;color:var(--g500);margin-top:4px">2 de 5 ejercicios completados</div>
-    </div>
-    <div style="height:16px"></div>
-  </div>`;
-}
-
-function toggleHint() {
-  state.showHint = !state.showHint;
-  renderScreen();
-}
-function toggleSolution() {
-  state.showSolution = !state.showSolution;
-  renderScreen();
-}
-function checkAnswer() {
-  const val = document.getElementById('answerInput')?.value.trim();
-  if (!val) return;
-  // Accept any answer containing the key terms
-  const correct = val.includes('12x') || val.includes('6x') || val.includes('√') || val.toLowerCase().includes('raiz');
-  state.answerResult = correct ? 'correct' : 'wrong';
-  renderScreen();
-  if (correct) setTimeout(() => { state.answerResult = null; nextTask(); }, 1800);
-}
-function nextTask() {
-  state.showHint = false; state.showSolution = false; state.answerResult = null;
-  renderScreen();
-}
-function prevTask() {
-  state.showHint = false; state.showSolution = false; state.answerResult = null;
-  renderScreen();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   EXAM MODE
-═══════════════════════════════════════════════════════════════ */
-function renderExam() {
-  return `
-  <div id="s-exam">
-    <div class="exam-glow"></div>
-    <div class="exam-icon">🎓</div>
-    <div class="exam-title">Modo Examen<br>Activo</div>
-    <div class="exam-subtitle">"Sin ayuda. Sin trampas.<br>Solo tú y tu conocimiento."</div>
-    <div class="exam-divider"></div>
-
-    <div style="text-align:center">
-      <div class="exam-timer" id="examTimer">60:00</div>
-      <div class="exam-timer-label">Tiempo restante</div>
-    </div>
-
-    <div class="exam-rules">
-      <div class="exam-rule">
-        <span class="exam-rule-icon">🔒</span>
-        <span class="exam-rule-text">IA desactivada temporalmente</span>
-      </div>
-      <div class="exam-rule">
-        <span class="exam-rule-icon">📵</span>
-        <span class="exam-rule-text">Sin acceso a apuntes ni pistas</span>
-      </div>
-      <div class="exam-rule">
-        <span class="exam-rule-icon">👁</span>
-        <span class="exam-rule-text">Modo integridad académica activo</span>
-      </div>
-    </div>
-
-    <button class="exam-exit" onclick="exitExam()">
-      Finalizar examen
-    </button>
-  </div>`;
-}
-
-function startExamTimer() {
-  state.examSeconds = 3600;
-  clearInterval(state.examInterval);
-  state.examInterval = setInterval(() => {
-    if (state.examSeconds > 0) {
-      state.examSeconds--;
-      const el = document.getElementById('examTimer');
-      if (el) {
-        const m = Math.floor(state.examSeconds / 60).toString().padStart(2,'0');
-        const s = (state.examSeconds % 60).toString().padStart(2,'0');
-        el.textContent = `${m}:${s}`;
-      }
-    }
-  }, 1000);
-}
-
-function exitExam() {
-  clearInterval(state.examInterval);
-  state.examInterval = null;
-  navigate('dashboard');
-}
-
-/* ── Boot ─────────────────────────────────────────────────── */
-renderScreen();
+paintTokens();paintPlans();
 </script>
 </body>
 </html>
